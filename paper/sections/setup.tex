@@ -1,0 +1,18 @@
+%=====================================================================
+\section{Experimental Setup}
+\label{sec:setup}
+
+\paragraph{Data.}
+We use the 31 Chinese \umr gold documents available to us (712 sentences; 8--82 per document), preprocessed as in \citet{chun2024pipeline}. All scores are computed against the same gold revision.\footnote{Some runs were first scored against an earlier revision. Re-scoring every stored prediction moved no macro average by more than 0.3 \F.} Experiments were run in stages, so we report three test sets: T1 = 0004--0005 (99 sentences) and T2 = 0005--0007 (157) for the fragment-mode runs, and H = 0015--0018, 0021--0024 (138) for the closed-mode runs. No reflection or hand tuning ever saw H. Training documents come from 0001--0014, and the development documents are 0027--0029 (47 sentences). Moving every system onto H is pending \exper{E1}.
+
+\paragraph{Procedures.}
+The fragment seed $R_0$ was written by hand from the \umr guidelines. $R_{xy}$ is the version after round $y$ on training document $x$. The closed seed $J_0$ uses the same registry. Its rules and options were tuned by hand on 0001--0003, so we test it only on documents from 0004 on. $J_1$ and $J_2$ follow unmeasured reflection on 0001 and 0002. $K_1$--$K_4$ continue from $K_0=J_2$ with measured reflection on 0008--0011, one document per round.
+
+\paragraph{Models.}
+Fragment decisions are made by Claude Sonnet 5.5, by DeepSeek V4.1 Flash (test runs without thinking), and by Qwen3.5-9B and Qwen3.8-27B \citep{qwen3} served with vLLM. Closed decisions are answered by three decision-model services that share one protocol: Jev \citep{typesafe2026jev}, the OpenAI Decisions API with \texttt{gpt-6-luna} \citep{openai2026decisions}, and Microsoft-Decision-1, a post-trained Qwen3.5-9B \citep{microsoft2026decision}. The reflector is Claude Opus 5.5 unless the parsing model reflects on itself.
+
+\paragraph{Baselines.}
+\emph{Single call}: one call per sentence with the sentence, a request for its \umr graph and a pointer to the guidelines (no document level). \emph{Detailed single call}: a full description of the target format, plus a document-level call. Pending \exper{E2}: a single call with the full guideline and gold examples from the same training documents; a generic tool-using agent; and the pipeline of \citet{chun2024pipeline}.
+
+\paragraph{Metrics.}
+AnCast++ \citep{sun2024ancast}: sentence-graph F-score (\F); modal, temporal and coreference scores; and the comprehensive score (Comp.). Each configuration was run once. A cold re-run changes \F by up to 0.6 in closed mode and by 2.3 on average for Qwen3.5-9B in fragment mode, so we treat differences below about 1 \F as noise. Repeated runs are pending \exper{E3}.

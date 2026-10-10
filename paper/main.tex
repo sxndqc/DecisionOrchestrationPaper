@@ -1,0 +1,60 @@
+% ACL 2026 long paper (ARR). Compile with pdfLaTeX + BibTeX:
+%   latexmk -pdf main.tex      (or Overleaf: upload the whole paper/ folder)
+% Red \todo{...} marks writing that is still missing; red \tbd cells mark experiments that have
+% not been run yet. Both are indexed in ../PLAN.md (Section 6, E1--E12).
+\documentclass[11pt]{article}
+\usepackage[review]{acl}
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+\usepackage{inconsolata}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{enumitem}
+\usepackage{xspace}
+\usepackage{xcolor}
+\usepackage{CJKutf8}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,fit,backgrounds,calc}
+
+% ---------------------------------------------------------------- macros
+\newcommand{\umr}{\textsc{UMR}\xspace}
+\newcommand{\amr}{\textsc{AMR}\xspace}
+\newcommand{\ours}{decision orchestration\xspace}
+\newcommand{\Ours}{Decision orchestration\xspace}
+\newcommand{\skill}[1]{\texttt{#1}}
+\newcommand{\zh}[1]{\begin{CJK}{UTF8}{gbsn}#1\end{CJK}}
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+\newcommand{\tbd}{\textcolor{red}{--}}
+\newcommand{\exper}[1]{\textcolor{red}{\textsc{[#1]}}}   % pointer to an experiment in PLAN.md
+\newcommand{\F}{F\xspace}
+
+\title{Decision Orchestration:\\
+Learning Annotation Procedures from a Handful of Gold Documents}
+
+\author{Anonymous ACL submission}
+
+\begin{document}
+\maketitle
+
+\input{sections/abstract}
+\input{sections/introduction}
+\input{sections/related}
+\input{sections/method}
+\input{sections/learning}
+\input{sections/setup}
+\input{sections/results}
+\input{sections/analysis}
+\input{sections/conclusion}
+
+\bibliography{references}
+
+\appendix
+\input{sections/appendix}
+
+\end{document}

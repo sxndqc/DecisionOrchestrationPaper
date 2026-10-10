@@ -1,0 +1,263 @@
+% ACL 2026-style submission. Compile on Overleaf with pdfLaTeX + BibTeX.
+\documentclass[11pt]{article}
+\usepackage[review]{acl}
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+\usepackage{inconsolata}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{enumitem}
+\usepackage{xspace}
+\usepackage{xcolor}
+\usepackage{CJKutf8}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,fit}
+
+\newcommand{\umr}{\textsc{UMR}\xspace}
+\newcommand{\amr}{\textsc{AMR}\xspace}
+\newcommand{\sys}{\textsc{umr-tree}\xspace}
+\newcommand{\skill}[1]{\texttt{#1}}
+\newcommand{\zh}[1]{\begin{CJK}{UTF8}{gbsn}#1\end{CJK}}
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+
+\title{Annotation Guidelines as Skill Orchestration:\\
+A Decision-Driven Harness for Highly Procedural Annotation}
+
+\author{Anonymous ACL submission}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Many annotation tasks are highly procedural but not fully proceduralizable: most of the work follows fixed steps and deterministic rules, yet a few decisions---is this word an event, which predicate sense applies, what is the aspect---require language understanding that no rule captures. Rule-based systems break at these points, while general-purpose agent harnesses hand the whole procedure to the model, making cost, output format and error attribution hard to control. We propose a \emph{decision-driven} harness that rewrites an annotation guideline as a set of skills: the harness executes the procedure deterministically, rule nodes do what rules can, and the model is called only at decision nodes, where it returns schema-constrained choices that the harness dispatches. Because every decision is a named skill with its own instructions, errors can be traced to the skill that made them, and the guideline can be improved automatically by a reflection loop that edits only that skill. On Chinese Uniform Meaning Representation (\umr) parsing, covering sentence graphs and document-level temporal, modal and coreference relations, the harness lets a 27B open model reach 93\% of the sentence F-score of a frontier model, while a 9B model that scores 0 with single-call generation reaches 18 F. With two training documents, automatic skill improvement raises test sentence F from 45.5 to 52.9, against 32.9 for a single-call baseline. We also characterize the limits of the design: cost grows with the number of decision points, errors cascade along the procedure, and self-improvement plateaus with strong models and becomes unstable with weak ones.
+\end{abstract}
+
+%=====================================================================
+\section{Introduction}
+
+To carry out or analyze a specific task, practitioners often design a dedicated ontology---an intent taxonomy, an event schema, or a meaning representation such as Uniform Meaning Representation \citep[\umr;][]{bonn2023umr,gysel2021design}. Traditionally, data in such an ontology is produced by annotators who label sentence after sentence following a guideline, and only once enough data has accumulated can it be used to train a model. The start-up phase therefore depends heavily on human labor and is slow and expensive.
+
+Ontology annotation involves two things: \emph{identifying the structure} in the data (which spans are events, who did what to whom, what modifies what) and \emph{mapping that structure onto the labels and conventions of the ontology}. Large language models (LLMs) follow instructions well enough to identify structure, but the labels and conventions---PropBank sense numbers \citep{palmer2005propbank}, \umr aspect values, how a Chinese \zh{是……的} construction is represented---are external knowledge that a model cannot be expected to know. That knowledge lives in the guideline.
+
+Such annotation tasks share a property: they are \emph{highly procedural but not fully proceduralizable}. In \umr, most of the work follows a fixed procedure and deterministic rules: segment the sentence, find each predicate and its arguments, write noun phrases and named entities in fixed patterns, merge mentions of the same referent, keep the graph well-formed and every token covered, then add document-level temporal, modal and coreference relations. All of this can be written as rules. A few points in the procedure, however, cannot: is this word an event or an entity? Which PropBank sense is meant? Is the aspect \texttt{state} or \texttt{performance}? These require language understanding and used to require a human.
+
+Existing approaches sit at two extremes. Rule-based systems write both the procedure and the decisions as rules, and are brittle exactly where understanding is needed. General-purpose agent harnesses, such as those used for coding agents \citep{yao2023react}, do the opposite and hand the procedure to the model as well: what to do next, which tool to call and what format to emit are all decided on the fly. For a task whose procedure is already known, this is wasteful and hard to control: the number of calls is unpredictable, the output format depends on the model's diligence, an error is hard to attribute to a step, and only the strongest models hold up.
+
+We propose a \textbf{decision-driven harness}: \emph{the harness executes the procedure deterministically, and the model decides only where rules cannot.} We rewrite the guideline as a set of \emph{skills}. Each skill is a node in the procedure, specified by its input, decision criteria, worked examples and output schema. Nodes that rules can handle (merging reentrant mentions, checking token coverage, assembling and validating the graph) are executed by code without calling a model. Nodes that need understanding (sentence type, predicate and arguments, noun phrase, named entity, document relations) call the model, whose output is a schema-constrained decision---a type chosen from a closed set, or a graph fragment with typed placeholders. A registry then dispatches the next skill deterministically from that decision.
+
+The design has three benefits. (1) \textbf{Interpretable and debuggable}: the input, decision and output of every node are recorded, so an error can be traced to the skill and step that made it, and lost points can be counted per skill. (2) \textbf{Well-formed by construction}: the graph is assembled from fragments by code, which guarantees that variables, brackets and role names are valid; the model never writes a full PENMAN graph. (3) \textbf{Usable by small models}: each decision is local. With Qwen3.5-9B, single-call generation scores 0 sentence F, while the same model in our harness reaches 18.0 F on average; Qwen3.8-27B reaches 42.4 F on the documents where a frontier model reaches 45.4.
+
+The decision-driven structure also leaves \textbf{room for automatic improvement}. When a guideline is maintained by hand, each newly found error type adds a rule, and the guideline grows into thousands of entangled rules. Following the tradition of error-driven rule learning \citep{brill1995transformation} and recent LLM self-improvement \citep{madaan2023selfrefine,shinn2023reflexion,acl2026base}, we let a model improve the skills itself: it compares parses of a few gold documents with gold, uses the node records to trace each problem to the skill that made the faulty decision, and modifies, adds or deletes instructions and examples of that skill only, leaving the procedure and the other skills untouched. On Chinese \umr, with Claude Sonnet parsing and Claude Opus reflecting, two training documents raise test sentence F from 45.5 to 52.9.
+
+We also report where the design reaches its limits. The finer the decisions, the more calls: with a frontier model, a sentence costs dozens of calls (about \$0.7). The procedure is a cascade, so a wrong upstream decision gives every downstream node a wrong input. Self-improvement plateaus after a few documents with a strong model and becomes unstable with a weak one.
+
+Our contributions are:
+\begin{itemize}[leftmargin=*,itemsep=1pt,topsep=2pt]
+  \item A decision-driven harness for annotation tasks that are highly procedural but not fully proceduralizable: rules execute the procedure and guarantee well-formedness, and the model makes schema-constrained decisions only where rules cannot.
+  \item \sys, an instantiation for \umr covering sentence graphs and document-level temporal, modal and coreference relations, which makes 9B--27B open models produce usable annotation where single-call generation almost completely fails.
+  \item A self-improvement loop that exploits the locality of decisions to attribute errors to skills and edit them locally, with an analysis of its gains and limits across model strengths.
+\end{itemize}
+
+%=====================================================================
+\section{Related Work}
+
+\paragraph{UMR and LLM-based semantic annotation.}
+\umr \citep{bonn2023umr,gysel2021design} extends \amr \citep{banarescu2013amr} with aspect, modality, cross-lingual abstractions and a document-level layer; UMR~2.0 \citep{bonn2025umr2} still has only a few hundred gold graphs per major language. \citet{chun2024pipeline} parse documents into \umr with a pipeline built on an \amr parser and rule-based conversion. LLMs have been evaluated as \amr analyzers \citep{ettinger2023expert} and as assistants for Chinese \umr annotation \citep{sun2024chinese}; both find that direct prompting struggles with the formal conventions of the representation. We evaluate with AnCast \citep{sun2024ancast}.
+
+\paragraph{Harnesses and pipelines for LLMs.}
+Agent frameworks interleave reasoning and tool calls under model control \citep{yao2023react}. Programming frameworks such as DSPy \citep{khattab2024dspy} compose LM calls into pipelines and optimize their prompts. Our harness is closer to the latter but specific to annotation: control flow is a registry dispatched on typed decisions, rule nodes are first-class, and output fragments are assembled into a graph by code.
+
+\paragraph{Learning rules and instructions from errors.}
+Transformation-based learning \citep{brill1995transformation} learns an ordered list of correction rules from the errors of an initial annotator. Recent work optimizes prompts from feedback \citep{zhou2023ape,pryzant2023protegi,yang2024opro,yuksekgonul2025textgrad} or lets models reflect on their own outputs \citep{madaan2023selfrefine,shinn2023reflexion}. \todo{position against the ACL 2026 heuristic-learning papers} Our loop differs in that errors are attributed to a specific decision node through the execution record, and edits are confined to that node's instructions and examples.
+
+%=====================================================================
+\section{A Decision-Driven Harness}
+\label{sec:method}
+
+\subsection{Skills and the registry}
+
+A \textbf{skill} is a directory with an instruction file (\texttt{skill.md}), optional worked examples that the skill retrieves with a \texttt{get\_example} tool, optional tools (e.g., \texttt{propbank\_lookup}), and an output schema. The model receives the instruction, the skill's input and a shared context (the sentence and its numbered tokens), and must answer through the schema; a schema violation is retried.
+
+A \textbf{registry} declares \emph{waves} that run in order and, within a wave, a \emph{dispatcher} that maps each field of a skill's output to the next skill. An \emph{episode} starts from the wave's start skill and grows a tree of nodes until every branch reaches a leaf. Episodes of the same wave run in parallel. Because the dispatcher is a fixed function of typed outputs, the control flow is deterministic given the decisions: the model never chooses which skill to call.
+
+\subsection{Decision nodes and rule nodes}
+
+Table~\ref{tab:nodes} lists the nodes of \sys. The \textbf{sentence} wave starts from \skill{sent\_type}, which classifies a span (a full sentence at the root) and routes it: spans with discourse relations go to \skill{discourse}, which splits them; clauses go to \skill{predicate}; noun phrases to \skill{np\_phrase}; names, dates and quantities to \skill{special\_entity}; and simple spans stop as leaves with a small graph. Each graph-producing skill writes a \emph{fragment} \(\{\textit{nodes},\textit{edges},\textit{attrs}\}\) whose unexpanded parts are typed placeholders listed as \emph{open}; each open placeholder is dispatched back to \skill{sent\_type} with its span. Participants outside the current span are listed as \emph{outside} and sent to the rule node \skill{antecedent}. The rule node \skill{coverage} sends every token that no child covers back to \skill{sent\_type}, so no content is silently dropped.
+
+The \textbf{reentrancy} wave is a rule: within each sentence it merges nodes of the same type and span, and attaches each antecedent to the node with the same span or head. The \textbf{document} wave calls \skill{document} once per sentence with that sentence's graph and the five preceding ones, and returns its temporal, modal and coreference relations. Author modality comes from the \texttt{modstr} each \skill{predicate} decision already assigns. An output handler assembles the fragments into a PENMAN graph and the document-level block.
+
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llp{3.6cm}@{}}
+\toprule
+Node & Kind & Decision / function \\
+\midrule
+\skill{sent\_type} & model & type of a span; routes it \\
+\skill{discourse} & model & split into related units \\
+\skill{predicate} & model & concept, sense, args, aspect, modstr \\
+\skill{np\_phrase} & model & head, modifiers, roles \\
+\skill{special\_entity} & model & names, dates, quantities \\
+\skill{document} & model & temporal, modal, coref \\
+\midrule
+\skill{antecedent} & rule & record outside participants \\
+\skill{coverage} & rule & re-dispatch uncovered tokens \\
+\skill{reentrancy} & rule & merge same-span nodes \\
+output handler & rule & assemble, validate graph \\
+\bottomrule
+\end{tabular}
+\caption{Decision nodes call the model with a schema; rule nodes are code.}
+\label{tab:nodes}
+\end{table}
+
+\subsection{Automatic skill improvement}
+\label{sec:rsi}
+
+Each round of improvement on a training document has three steps.
+\textbf{Find.} For every sentence, a reflection model receives the gold graph, the predicted graph, the AnCast variable alignment, the document-level relations and the execution record of the node tree, and lists every difference, the reason it is wrong, and the skill call that caused it.
+\textbf{Plan.} Problems are grouped by skill, and the reflection model proposes edits in the style of a code review: \emph{modify} an instruction or example that is wrong or too narrow, \emph{add} a general rule to \texttt{skill.md} or a worked case to the examples, or \emph{delete} one that contradicts gold conventions. It is told to fix the pattern, not the instance.
+\textbf{Apply.} Each edit is anchored on existing text and applied to a copy of the skill set, which becomes the next version. An edit is rejected if its anchor is missing or ambiguous, or if the edited skill no longer loads. The reflector never sees test documents. Rule nodes, the registry and the schemas are never edited.
+
+%=====================================================================
+\section{Experimental Setup}
+
+\paragraph{Data.}
+We use Chinese \umr documents 0001--0007 after the cleanup of \citet{chun2024pipeline} (51, 60, 31, 59, 40, 35 and 82 sentences). The gold is only used for scoring and reflection; no examples are taken from test documents.
+
+\paragraph{Protocol.}
+Version $R_{xy}$ is the skill set after round $y$ on training document $x$. We train on 0001 and 0002 for three rounds each, and on 0003 and 0004 for two rounds each. Versions trained on at most two documents ($R_{13}$, $R_{23}$) are tested on 0004 and 0005; versions trained on 0001--0004 are tested on 0005--0007. The seed $R_0$ was written by hand from the \umr guidelines.
+
+\paragraph{Models.}
+Parsing uses Claude Sonnet 5.5 and reflection uses Claude Opus 5.5, both through the Messages API. For open models we serve Qwen3.5-9B and Qwen3.8-27B \citep{qwen3} with vLLM with thinking enabled, and also run DeepSeek \todo{exact model and version}.
+
+\paragraph{Baseline.}
+\emph{Single call}: one call per sentence with the Chinese sentence, a request for its \umr graph and a link to the guidelines; it produces no document-level relations.
+
+\paragraph{Metrics.}
+AnCast++ \citep{sun2024ancast}: precision, recall and F of sentence graphs; modal, temporal and coreference scores of the document layer; and their comprehensive score. For analysis we use a fine-grained judge that scores each aspect separately (event and entity concepts, senses, attributes, core and peripheral arguments, role labels, names, reentrancy, temporal, modal and coreference), on the node alignment produced by AnCast.
+
+%=====================================================================
+\section{Results}
+
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+System & F & Mod. & Tmp. & Coref & Comp. \\
+\midrule
+\multicolumn{6}{@{}l}{\emph{Test 0004+0005}} \\
+Single call & 32.9 & 7.4 & 0.0 & 0.0 & 27.8 \\
+\sys $R_0$ & 45.5 & 60.4 & 29.6 & 20.7 & 44.2 \\
+\sys $R_{13}$ (1 doc) & 51.0 & 61.1 & 39.3 & 23.3 & 49.5 \\
+\sys $R_{23}$ (2 docs) & \textbf{52.9} & 60.0 & 43.6 & 25.5 & \textbf{51.5} \\
+\midrule
+\multicolumn{6}{@{}l}{\emph{Test 0005+0006+0007}} \\
+Single call & 29.5 & 6.9 & 0.0 & 0.0 & 25.0 \\
+\sys $R_{32}$ (3 docs) & 55.4 & 54.6 & 41.9 & 26.6 & 52.2 \\
+\sys $R_{42}$ (4 docs) & \textbf{55.7} & 55.0 & 40.4 & 26.3 & \textbf{52.3} \\
+\bottomrule
+\end{tabular}
+\caption{AnCast++ on held-out documents, macro-averaged (Claude Sonnet parsing). F is sentence-graph F.}
+\label{tab:main}
+\end{table}
+
+\paragraph{Main results.}
+Table~\ref{tab:main} shows that the hand-written seed already beats single-call generation by 12.6 sentence F and adds a document layer the baseline does not produce. One training document adds 5.5 F and a second one 1.9 F; temporal improves most (29.6 $\rightarrow$ 43.6). Training on two more documents leaves test scores flat (55.4 $\rightarrow$ 55.7).
+
+\paragraph{Training trajectories.}
+Within a training document, each round helps substantially (Table~\ref{tab:train}): on 0001, sentence F rises from 40.8 to 71.4 over three rounds. The first parse of each new document, with skills that never saw it, also rises: 59.0 on 0002 with $R_{13}$, against 50.7 for the seed.
+
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Doc & $R_0$ & iter 1 & iter 2 & iter 3 & after \\
+\midrule
+0001 & 40.8 & 40.8 & 60.1 & 67.3 & 71.4 \\
+0002 & 50.7 & 59.0 & 66.5 & 70.6 & 73.6 \\
+0003 & 50.0 & 57.9 & 70.3 & -- & -- \\
+0004 & 40.0 & 50.0 & 58.3 & -- & -- \\
+\bottomrule
+\end{tabular}
+\caption{Sentence F on training documents. Iteration $y$ parses with the version before round $y$; iteration 1 uses only earlier documents. ``after'' parses with the final version of that document.}
+\label{tab:train}
+\end{table}
+
+\paragraph{Small models.}
+Table~\ref{tab:small} compares models on the seed skills. With Qwen3.5-9B, single-call generation produces no graph that AnCast can score on any of 21 documents (0 F), and a single call with a detailed instruction averages 6.2 F; the harness reaches 18.0 F and beats both on every document. Qwen3.8-27B reaches 42.4 F on 0001--0004, 93\% of Claude Sonnet's 45.4 on the same documents. For DeepSeek, thinking matters: on 0002 the seed scores 35.9 F without thinking and 49.1 with it, close to Sonnet's 50.7.
+
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}llccc@{}}
+\toprule
+Model & Docs & Single & Detailed & \sys \\
+\midrule
+Qwen3.5-9B & 21 docs$^\dagger$ & 0.0 & 6.2 & 18.0 \\
+Qwen3.8-27B & 0001--0004 & -- & -- & 42.4 \\
+Claude Sonnet & 0001--0004 & -- & -- & 45.4 \\
+\bottomrule
+\end{tabular}
+\caption{Sentence F with the seed skills ($R_0$). Single: one call per sentence with a minimal prompt; Detailed: one call with a full instruction. $^\dagger$0008--0032, not the same documents as the other rows. \todo{run Qwen on 0001--0004 single/detailed}}
+\label{tab:small}
+\end{table}
+
+%=====================================================================
+\section{Analysis}
+
+\paragraph{Errors are attributable to skills.}
+Because each node is recorded, we can sum the points lost per skill (Table~\ref{tab:lost}). On 0001, the largest initial losses are in \skill{predicate}, \skill{np\_phrase} and \skill{document}. Reflection reduces them where the fix is local: \skill{special\_entity} drops from 149 to 33 points and \skill{np\_phrase} from 406 to 215. The fine-grained judge shows the same: name tokens rise from 0.38 to 0.87 F, core arguments of abstract predicates from 0.13 to 0.75. Losses that span several decisions improve least: \skill{document} only from 406 to 337, reentrancy from 0.15 to 0.36, coreference chains from 0.36 to 0.44.
+
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Skill & iter 1 & iter 2 & iter 3 & after \\
+\midrule
+\skill{predicate} & 518 & 435 & 440 & 395 \\
+\skill{np\_phrase} & 406 & 361 & 266 & 215 \\
+\skill{document} & 406 & 380 & 338 & 337 \\
+(no predicted node) & 286 & 295 & 259 & 211 \\
+\skill{sent\_type} & 273 & 180 & 145 & 148 \\
+\skill{special\_entity} & 149 & 62 & 38 & 33 \\
+\skill{discourse} & 26 & 28 & 31 & 37 \\
+\bottomrule
+\end{tabular}
+\caption{Points lost per skill on 0001 (sum of $1-\text{credit}$ over all judge units).}
+\label{tab:lost}
+\end{table}
+
+\paragraph{What reflection edits.}
+Each round finds 376--902 problems, 29--43\% of them at the document level, and applies 35--73 edits, distributed over all six decision skills (most to \skill{predicate} and \skill{np\_phrase}). Only one of 441 proposed edits was rejected. The problems found on 0001 fall from 797 to 582 over three rounds. \todo{qualitative examples from edits.diff: one rule, one example, one deletion}
+
+\paragraph{Cost.}
+A sentence takes dozens of model calls. With Claude Sonnet at API prices, testing $R_{13}$ on 0004 and 0005 (99 sentences) cost \$70.3 (\$0.71 per sentence), and parsing 0002 with $R_{23}$ cost \$0.84 per sentence. Prompt caching of the instruction prefix reduces cost but not the number of calls. With a local model the marginal cost is zero, which is where the harness is most attractive.
+
+\paragraph{Cascading errors and the limits of self-improvement.}
+The procedure is a cascade: if \skill{sent\_type} routes a span wrongly, every node below it works on the wrong input, and the ``no predicted node'' row of Table~\ref{tab:lost} stays above 200 points. With Claude, test gains flatten after two documents (Table~\ref{tab:main}). With DeepSeek, $R_{42}$ still improves test F from 30.9 to 36.1. With Qwen3.5-9B as both parser and reflector, parsing each new document with the previous version is on average 1.4 F \emph{below} the seed (0.6 above in the first half of the sequence, 3.0 below in the second half), against a seed-to-seed noise of 2.3 F. Two causes are visible: the 9B reflector rewrites the anchors it should copy (with strict matching only 1 of 15 edits applied), and its edits are noisier than the gains they target. Decision locality makes errors attributable, but improving the decisions still requires a capable reflector.
+
+%=====================================================================
+\section{Conclusion}
+
+We presented a decision-driven harness for annotation tasks that are highly procedural but not fully proceduralizable. The harness executes the procedure and guarantees well-formedness; the model makes local, schema-constrained decisions; and every decision is a named skill that can be improved from errors. On Chinese \umr, the harness makes open models usable where single-call generation fails, and automatic skill improvement adds 7.4 test F with two training documents. The same structure that makes it controllable---many fine decisions in a cascade---also makes it costly with frontier models and limits how far self-improvement can go.
+
+\section*{Limitations}
+
+Experiments are on Chinese \umr only, with seven evaluated documents; English results with earlier versions of the harness are not included. Small-model comparisons in Table~\ref{tab:small} use different documents for the 9B model. Test sets for different training stages differ (0004+0005 vs.\ 0005--0007) because 0004 was later used for training. Each configuration was run once; re-parsing the seed with Qwen3.5-9B varied by 2.3 F on average. The seed skills were written by the authors, and their quality affects all results.
+
+\bibliography{references}
+
+\appendix
+\section{Fine-grained scores}
+\label{app:judge}
+\todo{per-check F on 0001 and 0002 across iterations (from experiment/rsi-zh2/scores.md)}
+
+\end{document}

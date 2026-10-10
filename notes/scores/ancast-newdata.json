@@ -1,0 +1,1102 @@
+{
+ "rsi-zh2/test/R0": {
+  "chinese_umr-0004": {
+   "P": 38.98,
+   "R": 40.19,
+   "F": 39.58,
+   "Modal": 57.19,
+   "Temporal": 31.15,
+   "Coref": 16.83,
+   "Comprehensive": 39.09
+  },
+  "chinese_umr-0005": {
+   "P": 50.12,
+   "R": 51.98,
+   "F": 51.03,
+   "Modal": 63.61,
+   "Temporal": 27.94,
+   "Coref": 24.5,
+   "Comprehensive": 48.93
+  }
+ },
+ "rsi-zh2/test/R13": {
+  "chinese_umr-0004": {
+   "P": 46.3,
+   "R": 49.07,
+   "F": 47.65,
+   "Modal": 58.16,
+   "Temporal": 36.13,
+   "Coref": 14.79,
+   "Comprehensive": 45.59
+  },
+  "chinese_umr-0005": {
+   "P": 53.84,
+   "R": 53.92,
+   "F": 53.88,
+   "Modal": 64.0,
+   "Temporal": 42.49,
+   "Coref": 31.86,
+   "Comprehensive": 53.15
+  }
+ },
+ "rsi-zh2/test/R23": {
+  "chinese_umr-0004": {
+   "P": 48.63,
+   "R": 52.34,
+   "F": 50.42,
+   "Modal": 59.62,
+   "Temporal": 42.05,
+   "Coref": 21.63,
+   "Comprehensive": 48.77
+  },
+  "chinese_umr-0005": {
+   "P": 53.69,
+   "R": 56.03,
+   "F": 54.83,
+   "Modal": 60.38,
+   "Temporal": 45.09,
+   "Coref": 29.36,
+   "Comprehensive": 53.68
+  }
+ },
+ "rsi-zh2/test/R32": {
+  "chinese_umr-0004": {
+   "P": 49.59,
+   "R": 49.79,
+   "F": 49.69,
+   "Modal": 62.27,
+   "Temporal": 41.63,
+   "Coref": 16.99,
+   "Comprehensive": 48.21
+  },
+  "chinese_umr-0005": {
+   "P": 53.84,
+   "R": 57.21,
+   "F": 55.48,
+   "Modal": 61.54,
+   "Temporal": 44.14,
+   "Coref": 28.06,
+   "Comprehensive": 54.04
+  },
+  "chinese_umr-0006": {
+   "P": 46.54,
+   "R": 47.66,
+   "F": 47.09,
+   "Modal": 40.0,
+   "Temporal": 38.11,
+   "Coref": 24.58,
+   "Comprehensive": 44.21
+  },
+  "chinese_umr-0007": {
+   "P": 63.21,
+   "R": 62.92,
+   "F": 63.06,
+   "Modal": 62.39,
+   "Temporal": 43.38,
+   "Coref": 27.23,
+   "Comprehensive": 57.96
+  }
+ },
+ "rsi-zh2/test/R42": {
+  "chinese_umr-0005": {
+   "P": 53.54,
+   "R": 57.57,
+   "F": 55.48,
+   "Modal": 62.69,
+   "Temporal": 43.83,
+   "Coref": 27.49,
+   "Comprehensive": 54.15
+  },
+  "chinese_umr-0006": {
+   "P": 47.6,
+   "R": 51.2,
+   "F": 49.33,
+   "Modal": 39.33,
+   "Temporal": 34.32,
+   "Coref": 25.47,
+   "Comprehensive": 45.26
+  },
+  "chinese_umr-0007": {
+   "P": 61.95,
+   "R": 61.84,
+   "F": 61.89,
+   "Modal": 62.98,
+   "Temporal": 43.12,
+   "Coref": 25.93,
+   "Comprehensive": 57.07
+  }
+ },
+ "rsi-zh2/test/generate-guidelines": {
+  "chinese_umr-0001": {
+   "P": 34.62,
+   "R": 27.56,
+   "F": 30.69,
+   "Modal": 5.46,
+   "Temporal": 0.0,
+   "Coref": 0.0,
+   "Comprehensive": 25.92
+  },
+  "chinese_umr-0002": {
+   "P": 33.93,
+   "R": 28.71,
+   "F": 31.1,
+   "Modal": 7.77,
+   "Temporal": 0.0,
+   "Coref": 0.0,
+   "Comprehensive": 25.95
+  },
+  "chinese_umr-0003": {
+   "P": 34.58,
+   "R": 30.17,
+   "F": 32.22,
+   "Modal": 4.23,
+   "Temporal": 0.0,
+   "Coref": 0.0,
+   "Comprehensive": 27.94
+  },
+  "chinese_umr-0004": {
+   "P": 34.95,
+   "R": 31.62,
+   "F": 33.21,
+   "Modal": 11.53,
+   "Temporal": 0.0,
+   "Coref": 0.0,
+   "Comprehensive": 27.81
+  },
+  "chinese_umr-0005": {
+   "P": 34.11,
+   "R": 30.49,
+   "F": 32.2,
+   "Modal": 3.19,
+   "Temporal": 0.0,
+   "Coref": 0.0,
+   "Comprehensive": 27.56
+  },
+  "chinese_umr-0006": {
+   "P": 25.24,
+   "R": 22.12,
+   "F": 23.57,
+   "Modal": 9.09,
+   "Temporal": 0.0,
+   "Coref": 0.0,
+   "Comprehensive": 20.29
+  },
+  "chinese_umr-0007": {
+   "P": 35.52,
+   "R": 29.89,
+   "F": 32.47,
+   "Modal": 8.36,
+   "Temporal": 0.0,
+   "Coref": 0.0,
+   "Comprehensive": 26.85
+  }
+ },
+ "rsi-zh-deepseek/test/R0": {
+  "chinese_umr-0002": {
+   "P": 37.0,
+   "R": 34.83,
+   "F": 35.88,
+   "Modal": 49.53,
+   "Temporal": 4.86,
+   "Coref": 2.97,
+   "Comprehensive": 32.74
+  },
+  "chinese_umr-0003": {
+   "P": 35.3,
+   "R": 31.79,
+   "F": 33.45,
+   "Modal": 58.52,
+   "Temporal": 3.33,
+   "Coref": 9.58,
+   "Comprehensive": 31.87
+  },
+  "chinese_umr-0005": {
+   "P": 30.5,
+   "R": 33.74,
+   "F": 32.04,
+   "Modal": 57.41,
+   "Temporal": 9.62,
+   "Coref": 7.84,
+   "Comprehensive": 31.37
+  },
+  "chinese_umr-0006": {
+   "P": 23.14,
+   "R": 27.4,
+   "F": 25.09,
+   "Modal": 33.44,
+   "Temporal": 3.3,
+   "Coref": 10.06,
+   "Comprehensive": 23.25
+  },
+  "chinese_umr-0007": {
+   "P": 34.61,
+   "R": 36.17,
+   "F": 35.37,
+   "Modal": 52.04,
+   "Temporal": 6.66,
+   "Coref": 6.61,
+   "Comprehensive": 32.28
+  }
+ },
+ "rsi-zh-deepseek/test/R42": {
+  "chinese_umr-0002": {
+   "P": 37.6,
+   "R": 43.53,
+   "F": 40.35,
+   "Modal": 51.9,
+   "Temporal": 12.16,
+   "Coref": 3.82,
+   "Comprehensive": 37.3
+  },
+  "chinese_umr-0003": {
+   "P": 37.51,
+   "R": 41.24,
+   "F": 39.29,
+   "Modal": 63.77,
+   "Temporal": 33.11,
+   "Coref": 10.01,
+   "Comprehensive": 39.5
+  },
+  "chinese_umr-0005": {
+   "P": 33.82,
+   "R": 41.51,
+   "F": 37.27,
+   "Modal": 64.97,
+   "Temporal": 14.14,
+   "Coref": 8.62,
+   "Comprehensive": 37.09
+  },
+  "chinese_umr-0006": {
+   "P": 25.94,
+   "R": 35.97,
+   "F": 30.14,
+   "Modal": 34.52,
+   "Temporal": 16.02,
+   "Coref": 8.02,
+   "Comprehensive": 28.28
+  },
+  "chinese_umr-0007": {
+   "P": 38.7,
+   "R": 42.97,
+   "F": 40.72,
+   "Modal": 52.86,
+   "Temporal": 8.05,
+   "Coref": 8.71,
+   "Comprehensive": 36.49
+  }
+ },
+ "jevumr/runs/test": {
+  "chinese_umr-0004": {
+   "P": 35.34,
+   "R": 37.66,
+   "F": 36.47,
+   "Modal": 57.68,
+   "Temporal": 29.5,
+   "Coref": 13.86,
+   "Comprehensive": 36.24
+  },
+  "chinese_umr-0005": {
+   "P": 38.72,
+   "R": 35.59,
+   "F": 37.09,
+   "Modal": 62.18,
+   "Temporal": 36.83,
+   "Coref": 7.8,
+   "Comprehensive": 38.02
+  },
+  "chinese_umr-0006": {
+   "P": 31.94,
+   "R": 32.28,
+   "F": 32.11,
+   "Modal": 31.94,
+   "Temporal": 36.52,
+   "Coref": 13.85,
+   "Comprehensive": 31.31
+  },
+  "chinese_umr-0007": {
+   "P": 34.24,
+   "R": 34.53,
+   "F": 34.38,
+   "Modal": 51.56,
+   "Temporal": 15.22,
+   "Coref": 12.36,
+   "Comprehensive": 32.11
+  }
+ },
+ "rsi-jev/test/J0": {
+  "chinese_umr-0001": {
+   "P": 32.16,
+   "R": 30.41,
+   "F": 31.26,
+   "Modal": 37.65,
+   "Temporal": 20.35,
+   "Coref": 12.99,
+   "Comprehensive": 30.15
+  },
+  "chinese_umr-0002": {
+   "P": 39.27,
+   "R": 37.46,
+   "F": 38.34,
+   "Modal": 48.49,
+   "Temporal": 30.14,
+   "Coref": 7.1,
+   "Comprehensive": 36.72
+  },
+  "chinese_umr-0003": {
+   "P": 36.18,
+   "R": 35.09,
+   "F": 35.63,
+   "Modal": 59.14,
+   "Temporal": 37.31,
+   "Coref": 21.52,
+   "Comprehensive": 36.84
+  },
+  "chinese_umr-0004": {
+   "P": 35.34,
+   "R": 37.66,
+   "F": 36.47,
+   "Modal": 57.68,
+   "Temporal": 29.5,
+   "Coref": 13.86,
+   "Comprehensive": 36.24
+  },
+  "chinese_umr-0005": {
+   "P": 38.72,
+   "R": 35.59,
+   "F": 37.09,
+   "Modal": 62.18,
+   "Temporal": 36.83,
+   "Coref": 7.8,
+   "Comprehensive": 38.02
+  },
+  "chinese_umr-0006": {
+   "P": 31.94,
+   "R": 32.28,
+   "F": 32.11,
+   "Modal": 31.94,
+   "Temporal": 36.52,
+   "Coref": 13.85,
+   "Comprehensive": 31.31
+  },
+  "chinese_umr-0007": {
+   "P": 34.24,
+   "R": 34.53,
+   "F": 34.38,
+   "Modal": 51.56,
+   "Temporal": 15.22,
+   "Coref": 12.36,
+   "Comprehensive": 32.11
+  },
+  "chinese_umr-0008": {
+   "P": 39.56,
+   "R": 40.91,
+   "F": 40.22,
+   "Modal": 61.11,
+   "Temporal": 14.82,
+   "Coref": 27.22,
+   "Comprehensive": 38.74
+  },
+  "chinese_umr-0009": {
+   "P": 38.77,
+   "R": 36.97,
+   "F": 37.85,
+   "Modal": 52.63,
+   "Temporal": 8.14,
+   "Coref": 39.36,
+   "Comprehensive": 36.13
+  },
+  "chinese_umr-0010": {
+   "P": 33.89,
+   "R": 33.24,
+   "F": 33.56,
+   "Modal": 40.0,
+   "Temporal": 22.22,
+   "Coref": 0.0,
+   "Comprehensive": 31.84
+  },
+  "chinese_umr-0011": {
+   "P": 31.57,
+   "R": 33.58,
+   "F": 32.54,
+   "Modal": 59.43,
+   "Temporal": 22.95,
+   "Coref": 10.04,
+   "Comprehensive": 33.17
+  },
+  "chinese_umr-0012": {
+   "P": 34.77,
+   "R": 33.72,
+   "F": 34.24,
+   "Modal": 52.73,
+   "Temporal": 9.5,
+   "Coref": 6.35,
+   "Comprehensive": 32.85
+  }
+ },
+ "rsi-jev/test/J2": {
+  "chinese_umr-0001": {
+   "P": 41.93,
+   "R": 39.64,
+   "F": 40.75,
+   "Modal": 39.68,
+   "Temporal": 22.94,
+   "Coref": 30.57,
+   "Comprehensive": 38.49
+  },
+  "chinese_umr-0002": {
+   "P": 50.45,
+   "R": 49.11,
+   "F": 49.77,
+   "Modal": 60.6,
+   "Temporal": 35.13,
+   "Coref": 16.48,
+   "Comprehensive": 47.76
+  },
+  "chinese_umr-0003": {
+   "P": 40.12,
+   "R": 38.48,
+   "F": 39.28,
+   "Modal": 68.36,
+   "Temporal": 44.16,
+   "Coref": 35.2,
+   "Comprehensive": 42.12
+  },
+  "chinese_umr-0004": {
+   "P": 37.06,
+   "R": 40.06,
+   "F": 38.5,
+   "Modal": 64.77,
+   "Temporal": 33.68,
+   "Coref": 12.53,
+   "Comprehensive": 39.12
+  },
+  "chinese_umr-0005": {
+   "P": 43.46,
+   "R": 40.36,
+   "F": 41.85,
+   "Modal": 68.05,
+   "Temporal": 40.6,
+   "Coref": 23.54,
+   "Comprehensive": 43.56
+  },
+  "chinese_umr-0006": {
+   "P": 34.08,
+   "R": 36.36,
+   "F": 35.18,
+   "Modal": 36.42,
+   "Temporal": 22.65,
+   "Coref": 11.05,
+   "Comprehensive": 33.27
+  },
+  "chinese_umr-0007": {
+   "P": 40.09,
+   "R": 39.56,
+   "F": 39.82,
+   "Modal": 58.27,
+   "Temporal": 14.35,
+   "Coref": 14.06,
+   "Comprehensive": 37.23
+  },
+  "chinese_umr-0008": {
+   "P": 39.28,
+   "R": 38.31,
+   "F": 38.79,
+   "Modal": 66.07,
+   "Temporal": 16.09,
+   "Coref": 26.55,
+   "Comprehensive": 38.6
+  },
+  "chinese_umr-0009": {
+   "P": 43.69,
+   "R": 42.28,
+   "F": 42.98,
+   "Modal": 59.26,
+   "Temporal": 9.23,
+   "Coref": 64.24,
+   "Comprehensive": 42.09
+  },
+  "chinese_umr-0010": {
+   "P": 40.02,
+   "R": 38.08,
+   "F": 39.03,
+   "Modal": 52.46,
+   "Temporal": 24.44,
+   "Coref": 7.02,
+   "Comprehensive": 38.38
+  },
+  "chinese_umr-0011": {
+   "P": 36.98,
+   "R": 38.35,
+   "F": 37.65,
+   "Modal": 67.05,
+   "Temporal": 29.21,
+   "Coref": 10.14,
+   "Comprehensive": 39.07
+  },
+  "chinese_umr-0012": {
+   "P": 38.4,
+   "R": 39.93,
+   "F": 39.15,
+   "Modal": 51.72,
+   "Temporal": 13.59,
+   "Coref": 3.17,
+   "Comprehensive": 36.74
+  }
+ },
+ "rsi-zh2/train/chinese_umr-0001/after": {
+  "chinese_umr-0001": {
+   "P": 72.54,
+   "R": 69.31,
+   "F": 70.89,
+   "Modal": 42.69,
+   "Temporal": 31.4,
+   "Coref": 44.66,
+   "Comprehensive": 62.66
+  }
+ },
+ "rsi-zh2/train/chinese_umr-0001/iter1": {
+  "chinese_umr-0001": {
+   "P": 43.93,
+   "R": 37.26,
+   "F": 40.32,
+   "Modal": 42.19,
+   "Temporal": 20.03,
+   "Coref": 28.48,
+   "Comprehensive": 37.98
+  }
+ },
+ "rsi-zh2/train/chinese_umr-0001/iter2": {
+  "chinese_umr-0001": {
+   "P": 62.82,
+   "R": 56.77,
+   "F": 59.64,
+   "Modal": 45.33,
+   "Temporal": 30.77,
+   "Coref": 32.65,
+   "Comprehensive": 54.01
+  }
+ },
+ "rsi-zh2/train/chinese_umr-0001/iter3": {
+  "chinese_umr-0001": {
+   "P": 69.18,
+   "R": 64.81,
+   "F": 66.92,
+   "Modal": 48.11,
+   "Temporal": 32.03,
+   "Coref": 39.71,
+   "Comprehensive": 60.22
+  }
+ },
+ "rsi-zh2/train/chinese_umr-0002/after": {
+  "chinese_umr-0002": {
+   "P": 73.96,
+   "R": 72.89,
+   "F": 73.42,
+   "Modal": 63.4,
+   "Temporal": 45.91,
+   "Coref": 26.03,
+   "Comprehensive": 66.79
+  }
+ },
+ "rsi-zh2/train/chinese_umr-0002/iter1": {
+  "chinese_umr-0002": {
+   "P": 58.77,
+   "R": 58.95,
+   "F": 58.86,
+   "Modal": 59.0,
+   "Temporal": 34.9,
+   "Coref": 15.57,
+   "Comprehensive": 54.29
+  }
+ },
+ "rsi-zh2/train/chinese_umr-0002/iter2": {
+  "chinese_umr-0002": {
+   "P": 66.68,
+   "R": 65.91,
+   "F": 66.29,
+   "Modal": 61.18,
+   "Temporal": 39.89,
+   "Coref": 20.76,
+   "Comprehensive": 60.41
+  }
+ },
+ "rsi-zh2/train/chinese_umr-0002/iter3": {
+  "chinese_umr-0002": {
+   "P": 71.63,
+   "R": 69.26,
+   "F": 70.43,
+   "Modal": 60.58,
+   "Temporal": 38.04,
+   "Coref": 17.55,
+   "Comprehensive": 62.97
+  }
+ },
+ "rsi-zh2/train/chinese_umr-0003/iter1": {
+  "chinese_umr-0003": {
+   "P": 58.72,
+   "R": 56.32,
+   "F": 57.49,
+   "Modal": 63.86,
+   "Temporal": 47.03,
+   "Coref": 40.09,
+   "Comprehensive": 56.26
+  }
+ },
+ "rsi-zh2/train/chinese_umr-0003/iter2": {
+  "chinese_umr-0003": {
+   "P": 70.28,
+   "R": 68.81,
+   "F": 69.54,
+   "Modal": 71.22,
+   "Temporal": 59.99,
+   "Coref": 47.0,
+   "Comprehensive": 67.55
+  }
+ },
+ "rsi-zh2/train/chinese_umr-0004/iter1": {
+  "chinese_umr-0004": {
+   "P": 49.59,
+   "R": 49.79,
+   "F": 49.69,
+   "Modal": 62.27,
+   "Temporal": 41.63,
+   "Coref": 16.99,
+   "Comprehensive": 48.21
+  }
+ },
+ "rsi-zh2/train/chinese_umr-0004/iter2": {
+  "chinese_umr-0004": {
+   "P": 56.66,
+   "R": 59.22,
+   "F": 57.91,
+   "Modal": 60.69,
+   "Temporal": 39.4,
+   "Coref": 32.63,
+   "Comprehensive": 54.68
+  }
+ },
+ "rsi-zh2/train/chinese_umr-0002/R0": {
+  "chinese_umr-0002": {
+   "P": 53.32,
+   "R": 48.12,
+   "F": 50.59,
+   "Modal": 55.8,
+   "Temporal": 24.17,
+   "Coref": 12.74,
+   "Comprehensive": 46.32
+  }
+ },
+ "rsi-zh2/train/chinese_umr-0003/R0": {
+  "chinese_umr-0003": {
+   "P": 50.64,
+   "R": 48.82,
+   "F": 49.72,
+   "Modal": 61.97,
+   "Temporal": 19.95,
+   "Coref": 21.69,
+   "Comprehensive": 46.27
+  }
+ },
+ "rsi-zh2/train/chinese_umr-0003/R13": {
+  "chinese_umr-0003": {
+   "P": 53.56,
+   "R": 55.49,
+   "F": 54.51,
+   "Modal": 61.22,
+   "Temporal": 45.52,
+   "Coref": 26.54,
+   "Comprehensive": 52.89
+  }
+ },
+ "rsi-zh-deepseek/test/R0-thinking": {
+  "chinese_umr-0002": {
+   "P": 51.13,
+   "R": 47.14,
+   "F": 49.05,
+   "Modal": 55.5,
+   "Temporal": 18.32,
+   "Coref": 10.6,
+   "Comprehensive": 44.37
+  }
+ },
+ "rsi-jev2/test/K3": {
+  "chinese_umr-0015": {
+   "P": 44.03,
+   "R": 44.83,
+   "F": 44.43,
+   "Modal": 45.38,
+   "Temporal": 9.84,
+   "Coref": 3.92,
+   "Comprehensive": 38.32
+  },
+  "chinese_umr-0016": {
+   "P": 36.55,
+   "R": 34.47,
+   "F": 35.48,
+   "Modal": 56.62,
+   "Temporal": 23.28,
+   "Coref": 2.3,
+   "Comprehensive": 35.58
+  },
+  "chinese_umr-0017": {
+   "P": 47.01,
+   "R": 46.81,
+   "F": 46.91,
+   "Modal": 66.12,
+   "Temporal": 13.41,
+   "Coref": 19.67,
+   "Comprehensive": 44.22
+  },
+  "chinese_umr-0018": {
+   "P": 38.32,
+   "R": 39.43,
+   "F": 38.87,
+   "Modal": 57.61,
+   "Temporal": 26.12,
+   "Coref": 18.9,
+   "Comprehensive": 38.84
+  },
+  "chinese_umr-0021": {
+   "P": 40.07,
+   "R": 39.6,
+   "F": 39.83,
+   "Modal": 83.33,
+   "Temporal": 20.53,
+   "Coref": 0.0,
+   "Comprehensive": 40.7
+  },
+  "chinese_umr-0022": {
+   "P": 33.72,
+   "R": 35.58,
+   "F": 34.62,
+   "Modal": 68.47,
+   "Temporal": 23.13,
+   "Coref": 8.33,
+   "Comprehensive": 36.58
+  },
+  "chinese_umr-0023": {
+   "P": 38.91,
+   "R": 34.93,
+   "F": 36.81,
+   "Modal": 75.2,
+   "Temporal": 19.69,
+   "Coref": 15.38,
+   "Comprehensive": 38.7
+  },
+  "chinese_umr-0024": {
+   "P": 49.57,
+   "R": 50.51,
+   "F": 50.03,
+   "Modal": 53.91,
+   "Temporal": 29.53,
+   "Coref": 0.64,
+   "Comprehensive": 45.5
+  }
+ },
+ "rsi-jev2/test/K4": {
+  "chinese_umr-0015": {
+   "P": 43.81,
+   "R": 45.02,
+   "F": 44.41,
+   "Modal": 47.9,
+   "Temporal": 9.86,
+   "Coref": 3.77,
+   "Comprehensive": 38.74
+  },
+  "chinese_umr-0016": {
+   "P": 35.09,
+   "R": 32.44,
+   "F": 33.71,
+   "Modal": 51.16,
+   "Temporal": 23.43,
+   "Coref": 1.87,
+   "Comprehensive": 33.46
+  },
+  "chinese_umr-0017": {
+   "P": 45.61,
+   "R": 43.74,
+   "F": 44.66,
+   "Modal": 64.46,
+   "Temporal": 12.05,
+   "Coref": 17.96,
+   "Comprehensive": 42.23
+  },
+  "chinese_umr-0018": {
+   "P": 37.89,
+   "R": 38.22,
+   "F": 38.06,
+   "Modal": 57.28,
+   "Temporal": 25.57,
+   "Coref": 19.07,
+   "Comprehensive": 38.15
+  },
+  "chinese_umr-0021": {
+   "P": 41.51,
+   "R": 40.62,
+   "F": 41.06,
+   "Modal": 82.24,
+   "Temporal": 20.88,
+   "Coref": 0.0,
+   "Comprehensive": 41.59
+  },
+  "chinese_umr-0022": {
+   "P": 32.73,
+   "R": 34.22,
+   "F": 33.46,
+   "Modal": 69.09,
+   "Temporal": 21.11,
+   "Coref": 9.09,
+   "Comprehensive": 35.61
+  },
+  "chinese_umr-0023": {
+   "P": 39.2,
+   "R": 35.12,
+   "F": 37.05,
+   "Modal": 73.6,
+   "Temporal": 20.02,
+   "Coref": 14.81,
+   "Comprehensive": 38.75
+  },
+  "chinese_umr-0024": {
+   "P": 48.71,
+   "R": 48.92,
+   "F": 48.81,
+   "Modal": 55.02,
+   "Temporal": 29.12,
+   "Coref": 0.61,
+   "Comprehensive": 44.81
+  }
+ },
+ "rsi-jev2/test/K0": {
+  "chinese_umr-0015": {
+   "F": 42.81,
+   "Modal": 39.66,
+   "Temporal": 15.62,
+   "Coref": 4.26,
+   "Comprehensive": 37.24
+  },
+  "chinese_umr-0016": {
+   "F": 35.28,
+   "Modal": 54.63,
+   "Temporal": 18.58,
+   "Coref": 0.0,
+   "Comprehensive": 34.51
+  },
+  "chinese_umr-0017": {
+   "F": 46.29,
+   "Modal": 65.57,
+   "Temporal": 13.61,
+   "Coref": 17.01,
+   "Comprehensive": 43.7
+  },
+  "chinese_umr-0018": {
+   "F": 39.86,
+   "Modal": 57.08,
+   "Temporal": 23.87,
+   "Coref": 15.02,
+   "Comprehensive": 39.03
+  },
+  "chinese_umr-0021": {
+   "F": 40.28,
+   "Modal": 82.57,
+   "Temporal": 21.85,
+   "Coref": 0.0,
+   "Comprehensive": 41.02
+  },
+  "chinese_umr-0022": {
+   "F": 31.41,
+   "Modal": 66.06,
+   "Temporal": 18.6,
+   "Coref": 3.39,
+   "Comprehensive": 33.48
+  },
+  "chinese_umr-0023": {
+   "F": 32.74,
+   "Modal": 71.87,
+   "Temporal": 21.03,
+   "Coref": 0.0,
+   "Comprehensive": 34.84
+  },
+  "chinese_umr-0024": {
+   "F": 47.38,
+   "Modal": 48.7,
+   "Temporal": 30.93,
+   "Coref": 0.62,
+   "Comprehensive": 43.22
+  }
+ },
+ "openai-decision/test/K0": {
+  "chinese_umr-0015": {
+   "F": 31.12,
+   "Modal": 35.25,
+   "Temporal": 10.59,
+   "Coref": 2.63,
+   "Comprehensive": 28.12
+  },
+  "chinese_umr-0016": {
+   "F": 24.72,
+   "Modal": 50.41,
+   "Temporal": 16.64,
+   "Coref": 5.97,
+   "Comprehensive": 26.65
+  },
+  "chinese_umr-0017": {
+   "F": 27.13,
+   "Modal": 54.55,
+   "Temporal": 17.11,
+   "Coref": 10.98,
+   "Comprehensive": 28.36
+  },
+  "chinese_umr-0018": {
+   "F": 25.9,
+   "Modal": 50.0,
+   "Temporal": 20.52,
+   "Coref": 10.56,
+   "Comprehensive": 27.96
+  },
+  "chinese_umr-0021": {
+   "F": 18.45,
+   "Modal": 73.6,
+   "Temporal": 20.63,
+   "Coref": 0.0,
+   "Comprehensive": 23.63
+  },
+  "chinese_umr-0022": {
+   "F": 16.64,
+   "Modal": 52.71,
+   "Temporal": 10.62,
+   "Coref": 25.0,
+   "Comprehensive": 20.51
+  },
+  "chinese_umr-0023": {
+   "F": 25.82,
+   "Modal": 59.42,
+   "Temporal": 18.1,
+   "Coref": 0.0,
+   "Comprehensive": 28.34
+  },
+  "chinese_umr-0024": {
+   "F": 35.21,
+   "Modal": 41.9,
+   "Temporal": 13.24,
+   "Coref": 0.36,
+   "Comprehensive": 32.21
+  }
+ },
+ "openai-decision/test/K0t": {
+  "chinese_umr-0015": {
+   "F": 30.37,
+   "Modal": 34.85,
+   "Temporal": 10.03,
+   "Coref": 0.0,
+   "Comprehensive": 27.49
+  },
+  "chinese_umr-0016": {
+   "F": 28.88,
+   "Modal": 50.4,
+   "Temporal": 17.08,
+   "Coref": 0.0,
+   "Comprehensive": 29.32
+  },
+  "chinese_umr-0017": {
+   "F": 29.51,
+   "Modal": 66.13,
+   "Temporal": 23.45,
+   "Coref": 6.35,
+   "Comprehensive": 31.61
+  },
+  "chinese_umr-0018": {
+   "F": 26.21,
+   "Modal": 53.51,
+   "Temporal": 18.36,
+   "Coref": 10.23,
+   "Comprehensive": 28.19
+  },
+  "chinese_umr-0021": {
+   "F": 22.18,
+   "Modal": 79.66,
+   "Temporal": 22.52,
+   "Coref": 0.0,
+   "Comprehensive": 27.05
+  },
+  "chinese_umr-0022": {
+   "F": 20.53,
+   "Modal": 59.13,
+   "Temporal": 14.29,
+   "Coref": 40.0,
+   "Comprehensive": 24.46
+  },
+  "chinese_umr-0023": {
+   "F": 31.01,
+   "Modal": 64.34,
+   "Temporal": 12.35,
+   "Coref": 0.0,
+   "Comprehensive": 32.37
+  },
+  "chinese_umr-0024": {
+   "F": 39.03,
+   "Modal": 44.08,
+   "Temporal": 20.9,
+   "Coref": 0.54,
+   "Comprehensive": 36.47
+  }
+ },
+ "microsoft-decision/test/K0": {
+  "chinese_umr-0015": {
+   "F": 32.17,
+   "Modal": 38.52,
+   "Temporal": 13.77,
+   "Coref": 0.0,
+   "Comprehensive": 29.96
+  },
+  "chinese_umr-0016": {
+   "F": 29.8,
+   "Modal": 51.08,
+   "Temporal": 16.95,
+   "Coref": 22.58,
+   "Comprehensive": 30.79
+  },
+  "chinese_umr-0017": {
+   "F": 34.72,
+   "Modal": 58.39,
+   "Temporal": 17.39,
+   "Coref": 11.71,
+   "Comprehensive": 34.45
+  },
+  "chinese_umr-0018": {
+   "F": 31.49,
+   "Modal": 59.19,
+   "Temporal": 19.98,
+   "Coref": 13.69,
+   "Comprehensive": 32.94
+  },
+  "chinese_umr-0021": {
+   "F": 28.94,
+   "Modal": 70.23,
+   "Temporal": 24.26,
+   "Coref": 0.0,
+   "Comprehensive": 31.59
+  },
+  "chinese_umr-0022": {
+   "F": 21.62,
+   "Modal": 55.93,
+   "Temporal": 12.77,
+   "Coref": 14.29,
+   "Comprehensive": 24.56
+  },
+  "chinese_umr-0023": {
+   "F": 28.93,
+   "Modal": 67.14,
+   "Temporal": 18.86,
+   "Coref": 13.79,
+   "Comprehensive": 31.76
+  },
+  "chinese_umr-0024": {
+   "F": 38.95,
+   "Modal": 47.9,
+   "Temporal": 18.56,
+   "Coref": 0.22,
+   "Comprehensive": 36.37
+  }
+ }
+}
