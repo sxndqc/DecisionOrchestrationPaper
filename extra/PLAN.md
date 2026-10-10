@@ -1,7 +1,7 @@
 # 写作规划：Decision Orchestration（原 A 篇 "Annotation Guidelines as Skill Orchestration"）
 
-写于 2026-10-10。先规划、后写作；论文本体在 `paper/`（ACL 2026 模板，pdfLaTeX + BibTeX）。
-原稿（中文 intro + 旧 tex）原样存在 `archive/v0-skill-orchestration/`，只作参考。
+写于 2026-10-10。先规划、后写作；论文本体在仓库根目录（ACL 2026 模板，pdfLaTeX + BibTeX）。
+原稿（中文 intro + 旧 tex）原样存在 `extra/archive/v0-skill-orchestration/`，只作参考。
 
 数字全部来自 `sxndqc/SkillParseUMR` 的各分支（出处见第 4 节）。旧实验有的用旧 gold（`olddata/gold/zh`），有的用
 `newdata/`；本文统一用 **newdata gold** 重新打了分（本会话本地跑 AnCast，预测文件不变），差别在 0.1–0.3 F 以内。
@@ -167,7 +167,7 @@ rsi-jev2（实测式）：每轮试 12 条，接受 8/7/8/6；训练篇 40.0→5
 
 ## 7. 第二个 benchmark：建议
 
-**主推 PARSEME 1.2（动词性多词表达识别），TempEval-3 作为备选。** 调研过程和每个候选的数字见 `notes/benchmark-survey.md`。
+**主推 PARSEME 1.2（动词性多词表达识别），TempEval-3 作为备选。** 调研过程和每个候选的数字见 `extra/notes/benchmark-survey.md`。
 
 为什么是 PARSEME：
 1. **guideline 本身就是决策树。** PARSEME 的标注指南把每个类别（VID、LVC.full/cause、IRV、VPC.full/semi、MVC、IAV）写成一串语言学测试组成的决策树（1.2 还专门给中文的 MVC 加了一棵决策树）。编译成本文的 orchestration 几乎是一对一：候选生成和训练集匹配是规则，每个测试是一个封闭问题，决策树是代码。这是 "guideline 就是流程" 最直接的证据。
