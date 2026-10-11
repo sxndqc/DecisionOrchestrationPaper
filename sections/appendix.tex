@@ -40,21 +40,21 @@ Doc & seed & iter 1 & iter 2 & iter 3 & after \\
 \toprule
 Skill & iter 1 & iter 2 & iter 3 & after \\
 \midrule
-\skill{predicate} & 518 & 435 & 440 & 395 \\
-\skill{np\_phrase} & 406 & 361 & 266 & 215 \\
-\skill{document} & 406 & 380 & 338 & 337 \\
-(no predicted node) & 286 & 295 & 259 & 211 \\
-\skill{sent\_type} & 273 & 180 & 145 & 148 \\
-\skill{special\_entity} & 149 & 62 & 38 & 33 \\
-\skill{discourse} & 26 & 28 & 31 & 37 \\
+\skill{predicate} & \tbd & \tbd & \tbd & \tbd \\
+\skill{np\_phrase} & \tbd & \tbd & \tbd & \tbd \\
+\skill{document} & \tbd & \tbd & \tbd & \tbd \\
+(no predicted node) & \tbd & \tbd & \tbd & \tbd \\
+\skill{sent\_type} & \tbd & \tbd & \tbd & \tbd \\
+\skill{special\_entity} & \tbd & \tbd & \tbd & \tbd \\
+\skill{discourse} & \tbd & \tbd & \tbd & \tbd \\
 \bottomrule
 \end{tabular}
-\caption{Credit lost per skill on training document 0001 over three rounds of fragment-mode reflection (sum of $1-\text{credit}$ over all judge units attributed to the skill). \todo{recompute the judge numbers in this paragraph against the current gold revision; AnCast scores already are.}}
+\caption{Credit lost per skill on training document 0001 over three rounds of fragment-mode reflection (sum of $1-\text{credit}$ over all judge units attributed to the skill). Cells are intentionally blank pending current-gold recomputation and scorer-version audit \exper{E13}; this table is a planned diagnostic, not a result.}
 \label{tab:lost}
 \end{table}
 
 %=====================================================================
-\section{Threshold calibration}
+\section{Task-Level Threshold Adaptation}
 \label{app:calib}
 Table~\ref{tab:calib} lists the thresholds of the closed-mode procedure and the sweep for the OpenAI Decisions API. The objective is Eq.~\ref{eq:objective} on 0001--0003 and 0006. Thresholds were swept in the order listed, each on top of the values kept so far, and a value is kept if it improves the objective by more than 0.05.
 
@@ -162,6 +162,8 @@ Skill & Rounds of closed questions \\
 \textbf{Assembly (rule).} Spans and categories are written to \texttt{.cupt}. Overlapping candidates are resolved by rule.
 \textbf{Learning.} Thresholds are calibrated per test. Measured reflection may reword tests, add candidate patterns or reorder the tree.
 
+\paragraph{Planned models and controls.} Closed seed and adapted procedures will use Jev, with Opus for reflection. A direct Jev classifier will select a category or non-MWE for each candidate, using the same frozen candidate generator and assembler; this controls for the answerer when testing the decision tree. Sonnet guideline/few-shot and fragment configurations are separate generative-system comparisons, and optional routing escalates Jev questions to Sonnet. Quality and total construction/inference cost will be reported separately. These configurations have not been evaluated \exper{E9}.
+
 \paragraph{Why PARSEME.} The PARSEME guidelines are, almost literally, a decision procedure. Candidates are found on the dependency trees that ship with the data, and each candidate is classified by linguistic tests organized as decision trees into a closed set of categories (verbal idioms, light-verb constructions, inherently reflexive verbs, verb-particle and multi-verb constructions). The test sets contain about 300 expressions per language that are unseen in training, which is the regime a procedure learned from a few documents should help with. The data is freely available, has an official scorer, and includes Chinese, which keeps the language constant with our \umr experiments; we will add one language from a different family \todo{choose: French or Polish}. Edition 2.0 extends the scheme to all syntactic categories in 17 languages \citep{scholivet2026parseme}, which allows a second test after a schema revision. Table~\ref{tab:second} lists the reference numbers.
 
 \begin{table}[h]
@@ -185,6 +187,8 @@ Orchestration, seed \exper{E9} & \tbd & \tbd \\
 
 \paragraph{Baselines.} The two-rule baseline and the official results of edition 1.2; a single LLM call with the guidelines (zero-shot and with the same training sentences as examples); and the fragment-mode variant of the same procedure.
 
+\paragraph{Planned generalization check.} To distinguish useful supervised reflection from fitting the diagnosis documents, we will compare the seed, the current reflection protocol and a cross-document selection protocol under matched gold, reflector and proposal budgets. The latter will propose edits from recurring training errors, state their guideline basis and applicability, and evaluate them on training-pool documents excluded from that proposal's diagnosis. Regression effects, instruction growth and cost will also be recorded. These selection documents are not final-test data. Checkpoint selection will use development data under a fixed query budget; frozen versions will be evaluated with repeated runs on a separate final set. The previously inspected H trajectory remains retrospective evidence, rather than a fresh confirmation set \exper{E3}, \exper{E6}, \exper{E8}.
+
 %=====================================================================
 \section{Pending experiments (to be removed before submission)}
 \label{app:pending}
@@ -201,4 +205,9 @@ Orchestration, seed \exper{E9} & \tbd & \tbd \\
   \item[E10] English \umr with the same procedure.
   \item[E11] Cost table: calls, tokens, dollars and wall-clock per configuration.
   \item[E12] Annotator time: correcting the procedure's output vs.\ annotating from scratch.
+  \item[E13] Evidence audit: recompute fine-grained judge results on the current gold; locate original $K_1/K_2$ predictions and scores; record scorer and model versions, gold checksums, invalid-graph handling, and the exact copying-guard coverage.
 \end{description}
+
+
+\section{Reproduction Status}
+The bundled AnCast rescoring JSON supports several reported macro averages but does not include the intermediate $K_1/K_2$ entries. Those H-score cells and current-gold judge counts remain blank \exper{E13}. The rescoring notes identify predictions from a separate experimental branch and a scorer not bundled with this checkout; the main-branch scorer also has an unresolved missing-variable path for failed graph matching. Before reproduction, provide a frozen scorer, all relevant predictions, gold checksums and exclusions, code commits, service/model versions and dates, runtime settings and a complete data-exposure ledger. Do not regenerate result tables with a different gold or silently drop failed predictions. Current cached-answer availability and redistribution permissions remain to be verified; commercial API access is not needed to audit already stored predictions.
