@@ -7,71 +7,62 @@
 \centering
 \resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
-    font=\small,
-    >={Stealth[length=2mm]},
-    rule/.style={draw, rounded corners=2pt, fill=gray!15, minimum height=5.5mm, inner sep=2.5pt, font=\footnotesize\ttfamily},
-    dec/.style={draw, rounded corners=2pt, fill=blue!10, minimum height=5.5mm, inner sep=2.5pt, font=\footnotesize\ttfamily},
+    font=\small, >={Stealth[length=2mm]},
     box/.style={draw, rounded corners=3pt, inner sep=5pt, align=left},
-    ttl/.style={font=\small\bfseries, anchor=south west},
-  ]
-  % ---------------- (a) the procedure
-  \node[dec] (st) at (2.6,0) {sent\_type};
-  \node[dec] (pr) at (0.7,-1.2) {predicate};
-  \node[dec] (np) at (2.6,-1.2) {np\_phrase};
-  \node[dec] (se) at (4.65,-1.2) {special\_entity};
-  \node[rule] (cov) at (0.7,-2.3) {coverage};
-  \node[rule] (ant) at (2.6,-2.3) {antecedent};
+    rule/.style={draw, rounded corners=2pt, fill=gray!15, minimum height=5mm, inner sep=2.5pt, font=\footnotesize\ttfamily},
+    dec/.style={draw, rounded corners=2pt, fill=blue!10, minimum height=5mm, inner sep=2.5pt, font=\footnotesize\ttfamily},
+    ttl/.style={font=\small\bfseries, anchor=south west}]
+  % (a) guideline in context
+  \node[box, fill=red!4, text width=3.9cm, anchor=north west] (a) at (0,0) {%
+    \textbf{Guideline} (300+ pages)\\ + sentence\\[2pt]
+    $\downarrow$ one call\\[2pt]
+    the whole annotation\\[3pt]
+    {\footnotesize Rules in the middle of the context are lost; an error cannot be traced to the rule that caused it.}};
+  \node[ttl] at ([yshift=2pt]a.north west) {(a) Guideline in context};
+  % (b) procedure
+  \node[dec] (st) at (6.6,-0.35) {sent\_type};
+  \node[dec] (pr) at (5.3,-1.3) {predicate};
+  \node[dec] (np) at (7.0,-1.3) {np\_phrase};
+  \node[dec] (se) at (8.75,-1.3) {special\_entity};
+  \node[rule] (cov) at (5.3,-2.2) {coverage};
+  \node[rule] (re) at (7.0,-2.2) {reentrancy};
+  \node[dec] (doc) at (8.75,-2.2) {document};
   \draw[->] (st) -- (pr); \draw[->] (st) -- (np); \draw[->] (st) -- (se);
-  \draw[->] (pr) -- (cov); \draw[->] (pr) -- (ant);
-  \draw[->, dashed] (pr.north) to[bend left=35] node[font=\scriptsize\itshape, above left, pos=0.4] {open slots} (st.west);
-  \node[rule] (re) at (0.7,-3.5) {reentrancy};
-  \node[dec]  (doc) at (2.6,-3.5) {document};
-  \node[rule] (out) at (4.65,-3.5) {assemble};
-  \draw[->] (re) -- (doc); \draw[->] (doc) -- (out);
-  \node[font=\scriptsize\itshape, anchor=west] at (-0.4,-2.9) {later waves};
-  \draw[gray, densely dotted] (-0.4,-2.75) -- (5.9,-2.75);
-  \node[rule, minimum height=3mm, minimum width=4mm] (lr) at (-0.2,-4.35) {};
+  \draw[->] (pr) -- (cov); \draw[->] (re) -- (doc);
+  \node[box, fill=blue!3, text width=5.3cm, anchor=north west, font=\footnotesize] (bm) at (4.3,-2.75) {%
+    \textbf{Fragment}: an LLM writes the step's small schema-checked emit.\\
+    \textbf{Closed}: code lists the options, a decision model returns probabilities, rules read them
+    (thresholds; low confidence $\to$ cascade to a small LLM).};
+  \node[ttl] at (4.3,0.12) {(b) Decision orchestration: the guideline as steps};
+  \node[rule, minimum height=3mm, minimum width=4mm] (lr) at (4.55,-4.5) {};
   \node[font=\scriptsize, anchor=west] at (lr.east) {rule node (code)};
-  \node[dec, minimum height=3mm, minimum width=4mm] (ld) at (2.5,-4.35) {};
+  \node[dec, minimum height=3mm, minimum width=4mm] (ld) at (7.0,-4.5) {};
   \node[font=\scriptsize, anchor=west] at (ld.east) {decision node (model)};
-  \node[ttl] at (-0.5,0.45) {(a) The guideline as a procedure};
-  % ---------------- (b) a closed decision
-  \node[box, fill=blue!4, text width=6.6cm, anchor=north west] (q) at (6.6,0.3) {%
-    \textbf{Code enumerates} the content words of the clause and the PropBank senses of each verb.\\[3pt]
-    \textbf{Q1} Which word heads the clause?\\
-    \quad \emph{explosion} .07 \quad \emph{killed} \textbf{.91} \quad \emph{people} .02\\[1pt]
-    \textbf{Q2} Sense of \emph{kill}? \quad kill-01 \textbf{.88} \quad kill-02 .09\\[1pt]
-    \textbf{Q3} Role of \emph{explosion}? \quad ARG0 \textbf{.71} \quad none .18\\[3pt]
-    \textbf{Rules build} \texttt{(k / kill-01 :ARG0 ...)}, reading each answer against a threshold $\theta$. An answer with confidence $<\tau$ can be routed to a stronger model or to a person.};
-  \node[ttl] at ([yshift=2pt]q.north west) {(b) A closed decision inside \texttt{predicate}};
-  % ---------------- (c) learning the procedure
-  \node[box, fill=green!6, text width=4.8cm, anchor=north west] (l) at (13.9,0.3) {%
-    \textbf{Given} a few gold documents, or batches of five gold sentences:\\[3pt]
-    \textbf{Calibrate} the thresholds $\theta$ by re-parsing and scoring.\\[2pt]
-    \textbf{Route} decisions with confidence $<\tau$.\\[2pt]
-    \textbf{Reflect}: find each difference from gold, attribute it to a node through the trace, edit that node (text, options, rules, $\theta$, registry), re-parse, and in closed mode, keep the edit only if its trial meets the acceptance criteria.\\[3pt]
-    \textbf{Result}: a new version of the procedure, as a readable diff.};
-  \node[ttl] at ([yshift=2pt]l.north west) {(c) Learning the procedure};
-  % ---------------- arrows between panels
-  \draw[->, thick] (se.east) -- ++(0.5,0) |- ([yshift=4mm]q.west);
-  \draw[->, thick] (q.east |- l.west) -- (l.west);
-  \coordinate (low) at ([yshift=-3mm]l.south);
-  \draw[->, thick, dashed] (l.south) -- (low) -| node[font=\scriptsize\itshape, pos=0.3, below] {edits: a new version of the procedure} (out.south);
+  % (c) reflection
+  \node[box, fill=green!6, text width=4.9cm, anchor=north west] (c) at (10.6,0) {%
+    \textbf{Every round: 5 gold sentences}\\[2pt]
+    parse $\to$ judge every difference $\to$ attribute it to the step that made it (trace: options, probabilities)\\[2pt]
+    reflector lists all problems, edits steps (modify, add, delete)\\[2pt]
+    closed: keep an edit only if measured gain; compress long steps\\[2pt]
+    $\Rightarrow$ a new frozen version $V_{r}$, a readable diff};
+  \node[ttl] at ([yshift=2pt]c.north west) {(c) Recursive self-improvement};
+  \draw[->, thick] (a.east) -- node[above, font=\scriptsize] {compile} (4.2,-1.0);
+  \draw[->, thick] (9.95,-1.0) -- (c.west |- 0,-1.0);
+  \draw[->, thick, dashed] (c.south) -- ++(0,-0.35) -| node[pos=0.25, below, font=\scriptsize\itshape] {edits to the steps} (9.5,-2.75);
 \end{tikzpicture}}
-\caption{Decision orchestration. (a)~The guideline is compiled into skills dispatched by a registry. Rule nodes are code; decision nodes consult a model. Shown is part of the \umr procedure (all nodes: Table~\ref{tab:nodes}, appendix); the PARSEME procedure is one rule node that enumerates candidates, one closed decision node and an output handler (Appendix~\ref{app:parseme}). (b)~In closed mode, a decision node asks questions whose options code has enumerated, and rules read the answer probabilities. (c)~With a handful of gold annotations, the procedure itself is learned. Example sentence, in English for readability: \emph{Police said the explosion killed two people.}}
+\caption{(a) The usual way to give an LLM a codebook: the whole guideline in context. (b) Decision orchestration compiles the guideline into a procedure of small steps, rule nodes and decision nodes, dispatched by a registry; a decision node is either a fragment decision by an LLM or closed questions answered by a decision model. (c) With a handful of gold sentences per round, a reflector edits the steps that made the errors.}
 \label{fig:overview}
 \end{figure*}
 %---------------------------------------------------------------------
 
-New annotation schemes, and old schemes in new languages or domains, often start with a prose guideline and little gold data. Producing the first annotations is costly \citep{settles2009active}. LLMs can assist familiar labeling tasks \citep{gilardi2023chatgpt,tan2024annotation}, but whole-structure prompting can violate a scheme's conventions and produce malformed output \citep{ettinger2023expert,sun2024chinese}, and supervised systems need thousands of annotated sentences.
+Annotating a complex ontology takes two things: an understanding of the structure the scheme describes, and the scheme's own codebook, the conventions that make one annotation right and a plausible alternative wrong \citep{kim2026refining}. Early in a project, a new scheme, language or domain has a guideline but little gold. With enough gold, supervised models learn both \citep{bevilacqua2021spring,bai2022graph}; with a handful of sentences they learn neither. Large language models bring the first ingredient for free: they understand sentences, events and referents well enough to bootstrap an annotation. What remains is to give them the codebook.
 
-We propose \textbf{decision orchestration} (Figure~\ref{fig:overview}): manually encode a guideline as an executable procedure, separating deterministic dispatch and assembly from local model judgments. Code enumerates candidates, looks up resources and writes the output; models decide what needs understanding, such as a verb's sense or whether a verb and a noun form a light-verb construction. A decision node returns a schema-constrained fragment or distributions over closed options enumerated by code, so LLMs and closed-question services \citep{typesafe2026jev,openai2026decisions,microsoft2026decision} can serve the same procedure. The procedure is then adapted under gold supervision without updating model weights: \textbf{threshold tuning} fits how rules read answer probabilities to the task metric, \textbf{routing} sends uncertain answers to a stronger model, and \textbf{reflection} proposes local edits from aligned traces, which in closed mode are kept only if they measurably help, with one gold document or five gold sentences per round. Every revision is a readable artifact.
+For simple labeling, the guideline fits into the prompt \citep{gilardi2023chatgpt,tan2024annotation,kim2026refining}. For complex schemes it does not. The \umr guidelines run to more than 300 pages \citep{gysel2021design}; put into one context, the rules that matter for a given sentence sit in the middle of a long document, where models use them least \citep{liu2024lost}, and an annotation must satisfy dozens of them at once, where following degrades with each added instruction \citep{harada2025instructions}. A second problem is just as practical. At the start of a project, people and models correct each other's errors, and correcting an error needs a diagnosis: which rule was misapplied, and where. When the whole guideline sits in one prompt and the model writes the whole annotation, an error cannot be traced to a rule, and fixing it means rewording a prompt and hoping.
 
-We test the method on two schemes that differ in how much of the output is structure, each in Chinese and English: verbal multiword expressions \citep[PARSEME;][]{ramisch2018parseme,ramisch2020parseme}, sets of categorized token groups, and Uniform Meaning Representation \citep[\umr;][]{gysel2021design}, graphs. Our findings:
+We propose \textbf{decision orchestration} (Figure~\ref{fig:overview}): compile the guideline into a procedure of small steps and run them in order. Code (rule nodes) cuts the input, enumerates candidates and assembles the output; models are consulted only at decision nodes, each with the part of the guideline it needs. A decision node is either a \emph{fragment} decision, in which an LLM writes a small schema-checked piece of the annotation, or a set of \emph{closed} questions whose options code has listed, answered with probabilities by a decision model and read by rules with thresholds. Because every output unit comes from a logged step, every error has an address. A reflector LLM uses these addresses to improve the procedure itself from five gold sentences at a time: it lists every problem it finds, edits the responsible steps, and in closed mode keeps only edits that measurably help; we call this recursive self-improvement (RSI) of the procedure, as the model weights never change.
+
+To our knowledge, this is the first work to annotate complex schemes step by step along their guidelines, and we show that it pays twice: (1) errors are diagnosable and can be fixed where they arise, and (2) with very little data, RSI makes the procedure much better than the guideline it started from and than a frontier model given the whole guideline. We use small LLMs (Claude Haiku 5.5 and GPT-6-luna) and, beyond them, fast decision models that output only probabilities (Jev, the OpenAI Decisions API, Microsoft-Decision-1), with a mid-size reflector (Claude Sonnet 5.5). We test on samples of two complex benchmarks, each in Chinese and English: the test sets of the 2026 UMR parsing shared task \citep{zeman2026umrst} and PARSEME verbal multiword expressions \citep{ramisch2018parseme,ramisch2020parseme}, starting from seeds written from the guidelines alone, with no examples. Our findings:
 \begin{itemize}[leftmargin=*,itemsep=2pt,topsep=2pt]
-\item On PARSEME, a closed procedure learned from \textbf{60 gold sentences}, five at a time, reaches 46.3 F in English, \textbf{4.4 points above the best published result} we know of \citep{rohanian2019bridging} and 13 above the best 2018 shared-task system, both trained on 3,471 sentences, and 57.8 F in Chinese, \textbf{18 points above} Claude Haiku annotating directly with ten gold examples, for under a dollar of reflection per language.
-\item On \umr, a 9B model reaches 17.6 F inside the procedure against 4.9 with a detailed prompt, two documents of reflection raise Sonnet from 45.3 to 52.6 F, and routing adds 2.5 F to a closed procedure. But direct generation with ten gold examples matches the best closed procedure in Chinese (42.0 vs.\ 42.6) and exceeds it by 16 F in English: where the output is mostly structure, closed decisions are not enough.
-\item Measurement shows where a procedure departs from the annotation: offering all 27 aspect values of the \umr guidelines, where the gold uses seven, together with one dropped polarity rule, cost 5.2 F.
+\item \todo{headline numbers per task, filled from Table~\ref{tab:main}}
 \end{itemize}
-
-\paragraph{Scope and shared infrastructure.} The companion study \emph{Can LLMs Build Better Annotators? Self-Improving Harnesses for Ontology-Guided Annotation} examines instruction revision in a three-call whole-graph harness. It shares our UMR data, alignment and judge and reuses procedural runs for comparison; shared runs are not independent replication. The PARSEME and English \umr runs are ours alone.
+These results suggest that LLMs can learn an annotation scheme from its instructions and a few dozen gold sentences, keep improving as new gold arrives, and that the models doing the annotating need not be frontier models: even simple decision models can serve.

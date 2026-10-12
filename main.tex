@@ -1,7 +1,7 @@
 % ACL 2026 long paper (ARR). Compile with pdfLaTeX + BibTeX:
 %   latexmk -pdf main.tex      (or Overleaf: upload this whole folder)
-% Red \todo{...} marks writing that is still missing; red \tbd cells mark experiments that have
-% not been run yet. Both are indexed in extra/PLAN.md (E1--E12); E13 is the evidence audit in the appendix.
+% Red \todo{...} marks writing that is still missing; red \tbd cells mark results not yet in.
+% Every number comes from SkillParseUMR/experiment/orchestration-v2 (results/summary.json).
 \documentclass[11pt]{article}
 \usepackage[review]{acl}
 \usepackage{times}
@@ -22,6 +22,7 @@
 \usepackage{tikz}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\usepackage[safe]{tipa}
 \usetikzlibrary{positioning,arrows.meta,fit,backgrounds,calc}
 
 % ---------------------------------------------------------------- macros
@@ -36,9 +37,10 @@
 \newcommand{\tbd}{\textcolor{red}{--}}
 \newcommand{\exper}[1]{\textcolor{red}{\textsc{[#1]}}}   % pointer to an experiment in PLAN.md
 \newcommand{\F}{F\xspace}
+\newcommand{\jm}{\textipa{ju:m\ae tS}}   % the official UMR shared-task metric
 
-\title{Decision Orchestration:\\
-Learning Annotation Procedures from a Handful of Gold Annotations}
+\title{Decision Orchestration: Step-by-Step Annotation of Complex Ontologies\\
+that Improves Itself from a Handful of Gold Sentences}
 
 \author{Anonymous ACL submission}
 
@@ -49,10 +51,9 @@ Learning Annotation Procedures from a Handful of Gold Annotations}
 \input{sections/introduction}
 \input{sections/related}
 \input{sections/method}
-\input{sections/learning}
 \input{sections/setup}
 \input{sections/results}
-\input{sections/analysis}
+\input{sections/discussion}
 \input{sections/conclusion}
 
 \bibliography{references}

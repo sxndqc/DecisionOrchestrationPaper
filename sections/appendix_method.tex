@@ -1,0 +1,44 @@
+%=====================================================================
+\section{The seed procedures}
+\label{app:seeds}
+
+All seeds were written from the guidelines before any training sentence was read, and contain no
+example: no annotated sentence, no example word in an option description, and every fragment skill's
+\texttt{reference/example.md} is empty. They are in \texttt{experiment/orchestration-v2/seeds/}.
+
+\paragraph{\umr.} Both modes share the registry: the sentence wave (\skill{sent\_type}, \skill{discourse}, \skill{predicate}, \skill{np\_phrase}, \skill{special\_entity}, and the rule nodes \skill{coverage} and \skill{antecedent}), the rule wave \skill{reentrancy}, and the \skill{document} wave. Each decision skill restates one part of the guidelines: \skill{sent\_type} the criteria for events (Part 3-1-1: processes in any packaging, states and entities only when predicated) and the kinds of pieces; \skill{discourse} the lattice of discourse relations (3-1-6); \skill{predicate} light verbs (3-1-3-5), the abstract predicates of non-verbal clauses and their roles (Tables 4 and 8), word senses (3-1-4), participant and non-participant roles (3-2), the aspect decision procedure (3-3-1: event nominals, then habitual, state, activity, endeavor, performance), polarity (3-3-3) and modal strength (4-3-1); \skill{np\_phrase} inverse roles for relative clauses, participant nominalizations and relational nouns (3-2-1-3), modifiers (3-2-2-2), quantity and unit (2-2-5) and person and number (3-3-5); \skill{special\_entity} the named-entity types of Table~5, dates and quantities; \skill{document} the temporal superstructure and relations (4-2), the modal dependency (4-3) and coreference (4-1). In fragment mode each is a \texttt{skill.md} of 2.5--6.5k characters (35k in all) with the output schema; in closed mode each is a Python file that builds the questions and rules, with the model-facing text in a \texttt{prompts.yaml}. Function-word, pronoun and numeral tables are closed-class grammar, not annotation decisions.
+
+\paragraph{PARSEME.} A rule node proposes candidates from the input's dependency tree: in English a verb with its particle (\texttt{compound:prt}), with the head noun of its object or oblique, or with the adposition of its oblique; in Chinese a multi-character verb token, a verb with the verb or adjective right after it that depends on it, a verb with its object, and four-character tokens. In closed mode, each candidate is asked the yes/no tests of its kind from the guidelines' decision trees (LVC.0--LVC.5, VID.1--VID.5, VPC.1--VPC.3, IAV, and the Chinese MVC tree), and rules walk the tree on the answers with one threshold. In fragment mode the LLM reads a \texttt{decide.md} that restates the categories and tests, sees the candidates, and returns the expressions of the sentence, which may include expressions the rules did not propose.
+
+%=====================================================================
+\section{Reflection}
+\label{app:reflection}
+
+\begin{algorithm}[h]
+\caption{Reflection on five gold sentences per round.}
+\label{alg:reflect}
+\small
+\begin{algorithmic}[1]
+\Require seed $V_0$, training batches $B_1,\dots,B_{10}$, mode $\in\{$closed, fragment$\}$
+\For{$r = 1,\dots,10$}
+  \State $V \gets V_{r-1}$; parse $B_r$ with $V$; judge; attribute each difference to a step
+  \State $P, E \gets$ \Call{Reflector}{gold, prediction, differences, decisions, files of $V$, history}
+  \For{each edit $e \in E$}
+    \If{$e$ applies, the procedure loads, and $e$ copies no test text}
+      \If{mode = closed}
+        \State $\Delta_b, \Delta_g \gets$ change of F on $B_r$ and on $B_1..B_{r-1}$ with $e$
+        \State keep $e$ iff ($\Delta_b>0 \wedge \Delta_g \geq -0.5$) $\vee$ ($\Delta_g>0 \wedge \Delta_b\geq 0$)
+      \Else\ keep $e$
+      \EndIf
+    \EndIf
+  \EndFor
+  \State closed: send rejected edits back once with their measured effect; try the rewrites
+  \For{each file $f$ longer than $1.5\times$ its seed}
+    \State rewrite $f$ shorter (reflector); closed: keep it iff no set falls by more than 0.5
+  \EndFor
+  \State $V_r \gets V$ (frozen; tested on the test set)
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+The reflector's instructions (abridged): the procedure follows a written guideline, code cuts, enumerates and assembles, decision nodes judge; list every problem you can find, however small, with its cause in the procedure; propose edits (\texttt{replace}, \texttt{insert\_after}, \texttt{delete}, each an exact anchor in one file) that fix them on these sentences and on unseen text; prefer general rules and better option descriptions to special cases; keep every file valid; when you add a rule, delete or merge what it makes redundant. The closed-mode variant lists the useful kinds of edits (the right answer among the options with a rule branch; sharper option descriptions; questions added, split or removed; thresholds; conventions written into rules; code that cuts or assembles wrongly), the fragment-mode variant its own (conventions, misleading instructions removed, explicit decision procedures, output format). The full prompts are in \texttt{code/reflect.py}.

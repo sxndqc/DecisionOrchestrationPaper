@@ -1,0 +1,44 @@
+%=====================================================================
+\section{Earlier experiments: fragment decisions by Claude Sonnet 5.5}
+\label{app:sonnet}
+
+Before the experiments of the main text, we ran the fragment-mode \umr procedure with a stronger parser, Claude Sonnet 5.5, on Chinese \umr, with an earlier hand-written seed that contained worked examples, an earlier test protocol (whole documents; AnCast++ instead of the shared task's metric) and unmeasured reflection by Claude Opus 5.5 on one whole training document per round. These numbers are not comparable with the main text (different seed, test documents, metric and gold exposure) and are reported for completeness.
+
+\begin{table}[h]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+System & Refl.\ docs (sent.) & T1: 0004--05 & T2: 0005--07 \\
+ & & \F / Comp. & \F / Comp. \\
+\midrule
+Single call, Sonnet 5.5 & 0 & 32.7 / 27.7 & 29.4 / 24.9 \\
+$R_0$ (seed), Sonnet 5.5 & 0 & 45.3 / 44.0 & -- \\
+$R_{13}$ & 1 (51) & 50.8 / 49.4 & -- \\
+$R_{23}$ & 2 (111) & 52.6 / 51.2 & -- \\
+$R_{32}$ & 3 (142) & 52.6 / 51.1 & 55.2 / 52.1 \\
+$R_{42}$ & 4 (201) & n/a & 55.6 / 52.2 \\
+\bottomrule
+\end{tabular}
+\caption{Earlier Chinese \umr runs with Sonnet 5.5 fragment decisions (AnCast++ sentence-graph F and comprehensive score, macro-averaged over documents). $R_{xy}$: the version after round $y$ on training document $x$. ``n/a'': 0004 was a training document by then.}
+\label{tab:sonnet}
+\end{table}
+
+\begin{table}[h]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Doc & seed & iter 1 & iter 2 & iter 3 & after \\
+\midrule
+0001 & 40.3 & 40.3 & 59.6 & 66.9 & 70.9 \\
+0002 & 50.6 & 58.9 & 66.3 & 70.4 & 73.4 \\
+0003 & 49.7 & 57.5 & 69.5 & -- & -- \\
+0004 & 39.6 & 49.7 & 57.9 & -- & -- \\
+\bottomrule
+\end{tabular}
+\caption{The same runs: sentence \F on each training document over the rounds of reflection on it. Training documents gain far more than test documents, as in the main text.}
+\label{tab:sonnet-traj}
+\end{table}
+
+One training document raised the first test set from 45.3 to 50.8 \F and a second to 52.6, with temporal relations improving most; third and fourth documents left the test scores flat. Unmeasured reflection accepted 440 of 441 edits and the skills grew from 41k to 156k characters in ten rounds, which motivated the length compression of the main text.
