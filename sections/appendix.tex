@@ -1,7 +1,258 @@
 %=====================================================================
+\section{Data, Models and Gold Exposure}
+\label{app:exposure}
+\paragraph{Gold revision.} The stored AnCast scores in the accompanying rescoring snapshot use the same Chinese gold revision; fine-grained judge analyses still require a separate revision audit and recomputation. Some runs were first scored against an earlier revision; re-scoring every stored prediction moved no macro average by more than 0.3 \F. Chinese documents have 8--82 sentences; the development documents 0027--0029 have 47. The English data are the normalized \umr 2.0 documents; we keep the sentences with native annotation, excluding those marked as partial conversions and empty ones. English batches come from the guideline's example sentences (0001--0005) alternating with the Pear story (0580, from sentence 56 on); development is 0580, sentences 31--55; test is 0006--0008, 0578--0579 and 0580, sentences 1--30.
+
+\paragraph{PARSEME.} The Chinese test set has 300 VMWEs unseen in train and dev by the official count. With the released evaluation script and data, we count 348 unseen in the training data (and the same number in train and dev), so our unseen F differs from the published values (e.g., 64.2 vs.\ 60.2 for TRAVIS-mono); global MWE-based F does not depend on this count. The English development set is held out of the training file, since edition 1.1 has no English dev file; the Chinese one is drawn from the official dev file.
+
+\paragraph{Gold exposure.} Table~\ref{tab:main}'s reflection counts exclude manual seed tuning. $J_0$, $J_2$ and $K_0$ inherit exposure to 0001--0003 (three unique documents, 142 sentences). $K_2$ adds 0008--0009 (five unique documents, 162 sentences), and $K_4$ also adds 0010--0011 (seven, 199). Round 4 additionally uses three development documents (47 sentences) for adaptive selection. These are different uses of gold and must be reported separately; the closed runs are not a two-document-total-data experiment. A batch run reads 60 training sentences (50 for the run from $J_0$) and measures every trial on its development set: 150 sentences for PARSEME, 27 for Chinese \umr (from 0027--0028; ten in the run from $J_0$) and 25 for English. The Chinese batch pool consists of five-sentence chunks of 0004--0014 taken round-robin over the documents; it contains T1 and T2, so batch runs are tested on H only. The revised Chinese procedure inherits $J_2$'s exposure, and its $\Pi_0$ was derived after the released revision's H score and aspect accuracy had been inspected; the fix follows the training gold's conventions, but the comparison of the two versions on H is retrospective. The seeds' PARSEME candidate rules cover about three quarters of the gold VMWEs of the training data; this coverage was computed once on the Chinese test set as well, without changing the seed.
+
+\paragraph{Models.} DeepSeek V4.1 Flash test runs were made without thinking. Qwen models were served with vLLM. The OpenAI Decisions API was used with \texttt{gpt-6-luna}; Microsoft-Decision-1 is a post-trained Qwen3.5-9B. In fragment mode the reflector is Claude Opus 5.5 unless the parsing model reflects on itself. Jev in the batch and routing runs is \texttt{jev-1.13-20260917}. The batch reflector's temperature is raised to 0.3 when its first reply cannot be parsed.
+
+%=====================================================================
+\section{Fine-grained judge}
+\label{app:judge}
+The judge works on the AnCast alignment of predicted and gold variables. It scores each of the following checks as an F-score over \emph{units}. A unit is one small comparison (a node, an attribute, an argument set, a relation) that is correct, partially correct, wrong, missing or extra.
+\textbf{(a) nodes}: event found, event concept, entity found, entity concept, granularity (is the node cut at the same words as gold);
+\textbf{(b)} event sense;
+\textbf{(c) attributes}: aspect, modal strength, polarity, refer-person/number, other attributes;
+\textbf{(d) arguments}: core arguments of events, core arguments of abstract predicates, peripheral arguments of events, peripheral arguments of entities;
+\textbf{(e) role labels}: core, peripheral;
+\textbf{(f) names}: name tokens, wiki;
+\textbf{(g)} reentrancy;
+\textbf{(h)} temporal; \textbf{(i)} modal; \textbf{(j)} coreference chains and subsets;
+\textbf{(k)} document format.
+For attribution, each unit is assigned to the node that produced its predicted side, or to ``no predicted node'' when only the gold side exists.
+
+%=====================================================================
+\section{Training trajectories}
+\label{app:traj}
+\begin{table}[h]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Doc & seed & iter 1 & iter 2 & iter 3 & after \\
+\midrule
+0001 & 40.3 & 40.3 & 59.6 & 66.9 & 70.9 \\
+0002 & 50.6 & 58.9 & 66.3 & 70.4 & 73.4 \\
+0003 & 49.7 & 57.5 & 69.5 & -- & -- \\
+0004 & 39.6 & 49.7 & 57.9 & -- & -- \\
+\bottomrule
+\end{tabular}
+\caption{Fragment mode (Sonnet 5.5 parsing, Opus 5.5 reflecting): sentence \F on each training document. Iteration $y$ parses with the version before round $y$, so iteration 1 uses only earlier documents. ``after'' parses with the document's final version.}
+\label{tab:traj}
+\end{table}
+
+\begin{table}[h]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Skill & iter 1 & iter 2 & iter 3 & after \\
+\midrule
+\skill{predicate} & \tbd & \tbd & \tbd & \tbd \\
+\skill{np\_phrase} & \tbd & \tbd & \tbd & \tbd \\
+\skill{document} & \tbd & \tbd & \tbd & \tbd \\
+(no predicted node) & \tbd & \tbd & \tbd & \tbd \\
+\skill{sent\_type} & \tbd & \tbd & \tbd & \tbd \\
+\skill{special\_entity} & \tbd & \tbd & \tbd & \tbd \\
+\skill{discourse} & \tbd & \tbd & \tbd & \tbd \\
+\bottomrule
+\end{tabular}
+\caption{Credit lost per skill on training document 0001 over three rounds of fragment-mode reflection (sum of $1-\text{credit}$ over all judge units attributed to the skill). Cells are intentionally blank pending current-gold recomputation and scorer-version audit \exper{E13}; this table is a planned diagnostic, not a result.}
+\label{tab:lost}
+\end{table}
+
+%=====================================================================
+\section{Additional \umr Results}
+\label{app:umr-more}
+\paragraph{Who answers the decisions.} Because the decision interface is fixed, very different models can serve the same procedure (Table~\ref{tab:answerer}). In fragment mode, Qwen3.8-27B reaches 42.4 \F on 0001--0004, 94\% of Sonnet's 45.1. DeepSeek V4.1 Flash depends on its reasoning: on 0002 it scores 49.1 \F with thinking and 35.9 without (Sonnet: 50.6), so its no-thinking test runs in Table~\ref{tab:main} understate it. In closed mode the model never writes structure, and a 9B decision service reaches 30.8 \F on H, compared with 17.6 for the fragment-mode 9B configuration. This comparison changes both the answerer and the procedure version, so it does not isolate the effect of the closed interface. A procedure tuned for one answerer does not transfer unchanged, though: $K_0$, built with Jev (39.5), loses 8.7--13.9 \F with the other two decision models. Part of the gap is calibration (\S\ref{sec:res-calib}).
+
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}llcc@{}}
+\toprule
+Answerer & Mode & \F & Comp. \\
+\midrule
+Qwen3.5-9B & fragment, $R_0$ & 17.6 & 18.5 \\
+Qwen3.8-27B & fragment, $R_0$ & \tbd & \tbd \\
+Sonnet 5.5 & fragment, $R_0$ & \tbd & \tbd \\
+\midrule
+Microsoft-Decision-1 (9B) & closed, $K_0$ & 30.8 & 31.6 \\
+OpenAI Decisions & closed, $K_0$ & 25.6 & 27.0 \\
+\quad + calibrated (\S\ref{sec:res-calib}) & closed, $K_0^{\theta}$ & 28.5 & 29.6 \\
+Jev & closed, $K_0$ & 39.5 & 38.4 \\
+Sonnet 5.5 & closed, $K_0$ & \tbd & \tbd \\
+\bottomrule
+\end{tabular}
+\caption{One procedure, different answerers, on H. Pending: \exper{E1}, \exper{E5}.}
+\label{tab:answerer}
+\end{table}
+
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Round (doc, sent.) & acc./tried & train \F & reg.\ $\Delta$\F & H \F \\
+\midrule
+$K_0$ & & & & 39.5 \\
+$K_1$ (0008, 10) & 8/12 & 40.0$\rightarrow$54.1 & $+$0.5 & \tbd \\
+$K_2$ (0009, 10) & 7/12 & 43.4$\rightarrow$60.2 & $+$0.5 & \tbd \\
+$K_3$ (0010, 12) & 8/12 & 41.4$\rightarrow$45.9 & $+$0.4 & 40.9 \\
+$K_4$ (0011, 25)$^\ast$ & 6/12 & 37.5$\rightarrow$41.6 & $+$3.2 & 40.1 \\
+\bottomrule
+\end{tabular}
+\caption{Reported historical trial summaries for measured reflection with Jev; source-log verification is pending \exper{E13}. ``reg.\ $\Delta$\F'': mean change on the regression documents. $^\ast$From round 4 on, problems are diagnosed on the training and regression documents together, and three development documents are measured in every trial (mean $+$0.8 \F on them).}
+\label{tab:rounds}
+\end{table}
+
+\paragraph{Thresholds do not transfer; recalibration is cheap.}
+$K_0$'s thresholds were tuned with Jev. Answered by the OpenAI Decisions API, it scores 25.6 \F on H. Coordinate descent on four gold documents (0001--0003, 0006) finds improvements for two of the ten thresholds in the tested grid: when a span counts as a single-verb clause (0.6 $\rightarrow$ 0.7) and the floors for attaching an out-of-clause argument (0.4/0.6 $\rightarrow$ 0.3/0.5). The calibration objective rises from 29.0 to 30.8, and on H, which calibration never saw, \F rises from 25.6 to 28.5 (Comp.\ 27.0 $\rightarrow$ 29.6). No value of the other eight improves the objective by more than 0.05 (Appendix~\ref{app:calib}). This grid search found improvements at two thresholds. It is task-level threshold adaptation, not calibration of answer probabilities; the search does not prove that the other thresholds are optimal or causally irrelevant. Calibrating Microsoft-Decision-1, and calibrating from one or two documents, are pending \exper{E4}.
+
+\paragraph{Confidence predicts agreement.}
+On $J_2$'s questions for two unseen documents (0010, 0012), Jev and Sonnet agree on 95\% of the questions where Jev's confidence is $\geq$0.9 (53\% of questions), 79\% at 0.7--0.9 (26\%), and 57\% below 0.7 (21\%). Disagreement concentrates in \skill{sent\_type}'s routing question (78\%) and \skill{np\_phrase}'s modifier questions (67\%), where a wrong answer reshapes a subtree. Agreement with Sonnet is not accuracy against gold or calibrated confidence. Reliability against gold-derived answers is pending \exper{E4}.
+
+
+%=====================================================================
+\section{Task-Level Threshold Adaptation}
+\label{app:calib}
+Table~\ref{tab:calib} lists the thresholds of the closed-mode procedure and the sweep for the OpenAI Decisions API. The objective is Eq.~\ref{eq:objective} on 0001--0003 and 0006. Thresholds were swept in the order listed, each on top of the values kept so far, and a value is kept if it improves the objective by more than 0.05.
+
+\begin{table}[h]
+\centering\small
+\setlength{\tabcolsep}{2.5pt}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{@{}llll@{}}
+\toprule
+Threshold (skill) & Jev & tried & kept ($\Delta J$) \\
+\midrule
+comma span $\rightarrow$ discourse (\skill{sent\_type}) & .2 & .3 .4 .5 & .2 \\
+split noun phrase (\skill{sent\_type}) & .2 & .3 .4 .5 & .2 \\
+word is an event (\skill{sent\_type}) & .5 & .4 .6 .7 & .5 \\
+single-verb clause (\skill{sent\_type}) & .6 & .4 .5 .7 & \textbf{.7} (+1.55) \\
+conjunct cut, and/or (\skill{discourse}) & .4/.5 & +.1, +.2, +.3 & .4/.5 \\
+cut without comma (\skill{discourse}) & .5 & .6 .7 .8 & .5 \\
+outside argument, ARG0-1/other (\skill{predicate}) & .4/.6 & $\pm$.1, +.2 & \textbf{.3/.5} (+0.27) \\
+generic yes/no (shared) & .5 & .6 .7 .8 & .5 \\
+coreference kept (\skill{document}) & .4 & .3 .5 .6 & .4 \\
+modal source kept (\skill{document}) & .7 & .5 .6 .8 & .7 \\
+\bottomrule
+\end{tabular}}
+\caption{Calibration of $K_0$ for the OpenAI Decisions API. Objective 29.0 $\rightarrow$ 30.8 on the calibration documents; on H, \F 25.6 $\rightarrow$ 28.5. \todo{same table for Microsoft-Decision-1 (E4)}}
+\label{tab:calib}
+\end{table}
+
+%=====================================================================
+\section{Skills}
+\label{app:skills}
+
+\begin{table}[h]
+\centering\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}llp{3.9cm}@{}}
+\toprule
+Node & Kind & Decides or does \\
+\midrule
+\skill{sent\_type} & decision & span type (5-way); routing \\
+\skill{discourse} & decision & relation; split points \\
+\skill{predicate} & decision & head, sense, roles, aspect, modality \\
+\skill{np\_phrase} & decision & head, its form, modifier roles \\
+\skill{special\_entity} & decision & entity kind, type, value \\
+\skill{document} & decision & time anchor, source, coreference \\
+\midrule
+\skill{antecedent} & rule & out-of-span participants \\
+\skill{coverage} & rule & re-dispatch uncovered tokens \\
+\skill{reentrancy} & rule & merge same-referent nodes \\
+output handler & rule & assemble, validate \\
+\bottomrule
+\end{tabular}
+\caption{Nodes of the \umr procedure. Each decision node has two interchangeable implementations (fragment and closed); rule nodes, registry and scorer are shared.}
+\label{tab:nodes}
+\end{table}
+
+\paragraph{A fragment-mode skill.}
+\texttt{predicate/skill.md} has sections on the head concept (event, abstract predicate, sense), the participants, participants outside the clause, aspect, modal strength and polarity, the output, worked examples, and, last, an \texttt{\#\# Input} section with the span, the numbered sentence and the outputs of the parent node. Because the input comes last, everything before it is cached across calls. Reflection edits these sections in place by anchored edits. The emit schema lists closed value sets for aspect (27 values), modal strength (6) and polarity, and open fields for the fragment, its open slots and its out-of-span participants. Over ten rounds of unmeasured reflection, the six decision skills grow from 41k to 156k characters of instructions.
+
+\paragraph{A closed-mode skill.}
+A closed skill is a Python generator:
+\begin{small}
+\begin{verbatim}
+def run(sent, span, **_):
+    a = yield {"state": {...}, "questions": {
+        "type": {"type": "choice",
+                 "criteria": TYPES}}}
+    b = yield {...}   # may depend on a
+    return emit_from(a, b)  # rules
+\end{verbatim}
+\end{small}
+\noindent Each option in \texttt{TYPES} carries a description condensed from the guideline, for example what counts as a \emph{discourse} span in Chinese, with the constructions that do and do not qualify. The returned emit has the same schema as the fragment-mode skill, so the registry and rule nodes are unchanged. Table~\ref{tab:questions} lists the questions per skill.
+
+\begin{table}[h]
+\centering\small
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{@{}lp{5.3cm}@{}}
+\toprule
+Skill & Rounds of closed questions \\
+\midrule
+\skill{sent\_type} & span type (5-way); for a one-word span in PropBank, its use here (event, state, manner, thing) \\
+\skill{discourse} & relation (8 frequent ones); one yes/no per possible cut point \\
+\skill{predicate} & (1) head word, verb or abstract predicate; (2) sense, aspect, modal strength, negation; (3) role of each content word; antecedent of each core argument outside the clause \\
+\skill{np\_phrase} & (1) head and its form (8-way); (2) role of each modifier; sense if the head is an event \\
+\skill{special\_entity} & kind (name, date, quantity, percentage, ordinal); entity type (44); quantity type \\
+\skill{document} & (1) temporal relation to the anchor event; source of a view; earlier mention it co-refers with, or new; (2) confirm each co-reference (yes/no) \\
+\bottomrule
+\end{tabular}
+\caption{Closed questions asked by each decision skill of $J_0$. Values (numbers, dates, names) are read by rules.}
+\label{tab:questions}
+\end{table}
+
+%=====================================================================
+\section{Reflection prompts}
+\label{app:prompts}
+\begin{algorithm}[h]
+\small
+\caption{Measured reflection in small batches.}
+\label{alg:reflect}
+\begin{algorithmic}[1]
+\Require seed procedure $\Pi_0$, training pool $P$, development set $D$, batch size $b{=}5$
+\For{$r = 1, \dots, R$}
+  \State $B \gets$ next $b$ sentences of $P$; $G \gets$ batches of rounds $r{-}2, r{-}1$
+  \State $s \gets \textsc{Score}(\Pi, \{B, G, D\})$
+  \State $E \gets \textsc{Reflect}(\Pi, \textsc{Report}(\Pi, B))$ \Comment{$\leq 3$ edits}
+  \For{$e \in E \cup \textsc{Revise}(\text{rejected})$}
+    \State $s' \gets \textsc{Score}(e(\Pi), \{B, G, D\})$
+    \If{$\bar{s}' - \bar{s} \geq 0.3 \wedge s'_D - s_D \geq -0.5 \wedge s'_G - s_G \geq -1$}
+      \State $\Pi \gets e(\Pi)$; $s \gets s'$
+    \EndIf
+  \EndFor
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{Batch mode.} The system prompt describes the procedure (skills that split the input by rules, ask Jev closed questions and assemble the answers by rules) and ranks what makes a good edit: the correct answer must be among the options and a rule must turn it into the gold structure; a closed question is better than a rule that guesses; long or ambiguous option lists should be split or given a \emph{none} option; thresholds are constants to change; gold conventions belong in rules; rewording only when an option is clearly misread. Edits must be general (no special-casing of a sentence from the report), keep the code runnable, and not depend on each other. The user prompt contains the task description, the full text of the editable files, the titles of edits tried in earlier rounds with their outcome, and the batch report: for each sentence, the gold and predicted annotations, the scorer's findings, and for every node the questions asked with Jev's top options and probabilities. The reflector answers in JSON with a diagnosis and at most three edits. Rejected edits are returned once with their measured effect on each set and the reason for rejection.
+
+\paragraph{Document mode.} \todo{condense rsi/find\_problems.md, rsi/plan\_edits.md and rsi-jev2/diagnose.md into half a page each; include the list of proposal kinds and the acceptance constants of \S\ref{sec:reflect}}
+
+%=====================================================================
+\section{The PARSEME Procedures}
+\label{app:parseme}
+\paragraph{Candidates.} Chinese: (1) a verb, auxiliary, adjective or noun token of two or more Han characters ending in a directional, resultative or co-verb complement from a fixed list (\zht{上, 下, 出, 起, 開, 完, 好, 掉, 住, 到, 為, 成, 在, 入, 至, 給}, \dots), read as stem + complement; (2) a four-character Han token; (3) a verb and a complement token attached to it (\texttt{mark}, \texttt{compound:vv}, \dots) within three tokens, or adjacent to it; (4) a light or causative verb from a list of 60 (\zht{進行, 提供, 作出, 受到, 帶來, 造成, 引起}, \dots) and its object. English: (1) a verb and its particle (\texttt{compound:prt}, or a particle word as \texttt{advmod} within three tokens); (2) a light verb from a list of 45 (\emph{make, take, give, have, do, pay, \dots}) and its object noun; (3) a verb and the preposition right after it; (4) \emph{make, let, get, break, come, go} with a bare complement.
+
+\paragraph{Questions.} One choice per candidate, with options by kind. Complement candidates (Chinese): VPC.semi, MVC, none. Light-verb candidates: LVC.full, LVC.cause, VID, none. Four-character tokens: a yes/no question (``a fixed idiom used as a verb or predicate here''). Particle candidates (English): VPC.full, VPC.semi, none; preposition candidates: IAV, VPC.full, none; complement candidates: VID, none. Every option carries one or two sentences from the guideline with examples. A candidate is kept when its most probable option is a category with $p \geq 0.5$; overlapping candidates are resolved by probability.
+
+\paragraph{After reflection.} The Chinese procedure grew from 64 to 80 lines of candidate rules and from 78 to 95 lines of decision code; the English one from 44 to 83 and from 69 to 96. New rules include exception lists (complements after perception verbs, causatives followed by a clause), new candidate kinds (English \emph{verb + particle + of}, idiom candidates \emph{verb + preposition + noun}), and per-verb thresholds (a stricter one for \emph{get} + noun).
+
+\paragraph{Why PARSEME.} The PARSEME guidelines are, almost literally, a decision procedure. Candidates are found on the dependency trees that ship with the data, and each candidate is classified by linguistic tests organized as decision trees into a closed set of categories (verbal idioms, light-verb constructions, inherently reflexive verbs, verb-particle and multi-verb constructions). The test sets contain about 300 expressions per language that are unseen in training, which is the regime a procedure learned from a few documents should help with. The data is freely available, has an official scorer, and includes Chinese, which keeps the language constant with our \umr experiments. We added English from edition 1.1, the last edition with English, instead of the French or Polish we had planned, so that both benchmarks share their two languages. Edition 2.0 extends the scheme to all syntactic categories in 17 languages \citep{scholivet2026parseme}, which allows a second test after a schema revision.
+
+\paragraph{Controls not run.} The plan also called for a direct Jev classifier that selects a category or \emph{none} for each candidate with the same frozen candidate generator and assembler, a Sonnet guideline/few-shot system, and a fragment-mode variant. They were not run; the direct baseline we report uses Haiku with ten gold examples \exper{E9}.
+
+%=====================================================================
 \section{Examples of Kept Edits}
 \label{app:edits}
-Each edit is an exact find-and-replace in one file of the procedure, proposed by the reflector with a reason and kept because its measured effect met the criterion of \S\ref{sec:reflection}. Gains are F on the batch, the regression set and the development set.
+Each edit is an exact find-and-replace in one file of the procedure, proposed by the reflector with a reason and kept because its measured effect met the criterion of \S\ref{sec:reflect}. Gains are F on the batch, the regression set and the development set.
 
 \paragraph{PARSEME English, round 6} (\texttt{candidates.py}; batch $+$14.3, regression $\pm$0, dev $+$1.9). \emph{Reason given:} ``\emph{V as NP} marks a role or function (\emph{acts as, serve as, work as}) and is not an IAV; removing it avoids false positives of this kind generally.''
 {\footnotesize
@@ -22,20 +273,6 @@ Each edit is an exact find-and-replace in one file of the procedure, proposed by
 +       t = t[:-len(s)]
 +       break
 \end{verbatim}}
-
-%=====================================================================
-\section{The PARSEME Seed Procedures}
-\label{app:seeds}
-\paragraph{Candidates.} Chinese: (1) a verb, auxiliary, adjective or noun token of two or more Han characters ending in a directional, resultative or co-verb complement from a fixed list (\zht{上, 下, 出, 起, 開, 完, 好, 掉, 住, 到, 為, 成, 在, 入, 至, 給}, \dots), read as stem + complement; (2) a four-character Han token; (3) a verb and a complement token attached to it (\texttt{mark}, \texttt{compound:vv}, \dots) within three tokens, or adjacent to it; (4) a light or causative verb from a list of 60 (\zht{進行, 提供, 作出, 受到, 帶來, 造成, 引起}, \dots) and its object. English: (1) a verb and its particle (\texttt{compound:prt}, or a particle word as \texttt{advmod} within three tokens); (2) a light verb from a list of 45 (\emph{make, take, give, have, do, pay, \dots}) and its object noun; (3) a verb and the preposition right after it; (4) \emph{make, let, get, break, come, go} with a bare complement.
-
-\paragraph{Questions.} One choice per candidate, with options by kind. Complement candidates (Chinese): VPC.semi, MVC, none. Light-verb candidates: LVC.full, LVC.cause, VID, none. Four-character tokens: a yes/no question (``a fixed idiom used as a verb or predicate here''). Particle candidates (English): VPC.full, VPC.semi, none; preposition candidates: IAV, VPC.full, none; complement candidates: VID, none. Every option carries one or two sentences from the guideline with examples. A candidate is kept when its most probable option is a category with $p \geq 0.5$; overlapping candidates are resolved by probability.
-
-\paragraph{After reflection.} The Chinese procedure grew from 64 to 80 lines of candidate rules and from 78 to 95 lines of decision code; the English one from 44 to 83 and from 69 to 96. New rules include exception lists (complements after perception verbs, causatives followed by a clause), new candidate kinds (English \emph{verb + particle + of}, idiom candidates \emph{verb + preposition + noun}), and per-verb thresholds (a stricter one for \emph{get} + noun).
-
-%=====================================================================
-\section{The Reflector's Prompt}
-\label{app:prompt}
-The system prompt describes the procedure (skills that split the input by rules, ask Jev closed questions and assemble the answers by rules) and ranks what makes a good edit: the correct answer must be among the options and a rule must turn it into the gold structure; a closed question is better than a rule that guesses; long or ambiguous option lists should be split or given a \emph{none} option; thresholds are constants to change; gold conventions belong in rules; rewording only when an option is clearly misread. Edits must be general (no special-casing of a sentence from the report), keep the code runnable, and not depend on each other. The user prompt contains the task description, the full text of the editable files, the titles of edits tried in earlier rounds with their outcome, and the batch report: for each sentence, the gold and predicted annotations, the scorer's findings, and for every node the questions asked with Jev's top options and probabilities. The reflector answers in JSON with a diagnosis and at most three edits. Rejected edits are returned once with their measured effect on each set and the reason for rejection.
 
 %=====================================================================
 \section{Runs and Costs}
@@ -68,6 +305,28 @@ Direct, UMR zh / en & 138 / 143 & 0.19 / 0.11 \\
 \end{table}
 
 %=====================================================================
-\section{Reproduction}
-\label{app:repro}
-The code, data splits, seed procedures, every version $\Pi_r$ with the round's report, proposals, trials and decision, and all test-set predictions are in the accompanying repository (\texttt{rsi-batch/} for the driver and the two task adapters, \texttt{experiment/decision-orchestration/} for the runs, with \texttt{summary.md} listing every number in this paper). A run is started with \texttt{rsi-batch/run\_parseme.sh LANG 12} or \texttt{rsi-batch/run\_umr\_v11.sh LANG 12}, and tested with \texttt{rsi-batch/evaluate\_test.py}.
+\section{Pending experiments (to be removed before submission)}
+\label{app:pending}
+\begin{description}[leftmargin=1em,itemsep=1pt,font=\normalfont\bfseries]
+  \item[E1] One gold revision, one held-out set (H), one development set for every system in Table~\ref{tab:main}.
+  \item[E2] Stronger baselines: full guideline with gold examples from the same training documents; a generic tool-using agent; \citet{chun2024pipeline}. \emph{Partly done:} inventory + ten gold sentences with Haiku 5.5 on H, the English \umr test set and both PARSEME test sets.
+  \item[E3] Learning curves over 0/1/2/4/8 documents with three document orders.
+  \item[E4] Calibration: reliability diagrams and ECE against gold-derived answers for three decision models; calibrating Microsoft-Decision-1; calibration from 1, 2 and 4 documents; transfer of thresholds between models.
+  \item[E5] Routing: the full curve over $\tau$ on H; routed questions answered from gold as a simulated annotator; Sonnet as the only closed answerer on H. \emph{Partly done:} $K_4$ routed to Haiku at $\tau\in\{0.7, 0.9\}$ on H; PARSEME at $\tau{=}0.7$.
+  \item[E6] Measured reflection: ablation of round 4, a larger and more varied development set, rounds 5--7, and the same loop with the other two decision models.
+  \item[E7] Ablations of the procedure: without the coverage and reentrancy rules; whole-graph generation instead of fragments; without the PropBank tool.
+  \item[E8] Ablations of reflection: wording-only edits vs.\ edits to rules, options and structure; unmeasured vs.\ measured acceptance at equal budget; training-only vs.\ training + regression + development measurement.
+  \item[E9] Second benchmark. \emph{Done} for PARSEME 1.2 Chinese and 1.1 English with batch reflection (Appendix~\ref{app:parseme}); the direct Jev classifier, Sonnet few-shot and fragment-mode controls, threshold tuning and learning curves over 1/2/4 batches of 100 sentences are not run.
+  \item[E10] English \umr with the same procedure. \emph{Done} with batch reflection from the Chinese $\Pi_0$ (Table~\ref{tab:batch}).
+  \item[E11] Cost table: calls, tokens, dollars and wall-clock per configuration. \emph{Done} for the batch, routing and direct runs (Table~\ref{tab:costs}); pending for the earlier runs.
+  \item[E12] Annotator time: correcting the procedure's output vs.\ annotating from scratch.
+  \item[E13] Evidence audit: recompute fine-grained judge results on the current gold; locate original $K_1/K_2$ predictions and scores; record scorer and model versions, gold checksums, invalid-graph handling, and the exact copying-guard coverage.
+\end{description}
+
+\paragraph{Planned generalization check.} To distinguish useful supervised reflection from fitting the diagnosis documents, we will compare the seed, the current reflection protocol and a cross-document selection protocol under matched gold, reflector and proposal budgets. The latter will propose edits from recurring training errors, state their guideline basis and applicability, and evaluate them on training-pool documents excluded from that proposal's diagnosis. Regression effects, instruction growth and cost will also be recorded. These selection documents are not final-test data. Checkpoint selection will use development data under a fixed query budget; frozen versions will be evaluated with repeated runs on a separate final set. The previously inspected H trajectory remains retrospective evidence, rather than a fresh confirmation set \exper{E3}, \exper{E6}, \exper{E8}.
+
+%=====================================================================
+\section{Reproduction Status}
+The bundled AnCast rescoring JSON supports several reported macro averages but does not include the intermediate $K_1/K_2$ entries. Those H-score cells and current-gold judge counts remain blank \exper{E13}. The rescoring notes identify predictions from a separate experimental branch and a scorer not bundled with this checkout; the main-branch scorer also has an unresolved missing-variable path for failed graph matching. Before reproduction, provide a frozen scorer, all relevant predictions, gold checksums and exclusions, code commits, service/model versions and dates, runtime settings and a complete data-exposure ledger. Do not regenerate result tables with a different gold or silently drop failed predictions. Current cached-answer availability and redistribution permissions remain to be verified; commercial API access is not needed to audit already stored predictions.
+
+The batch, routing and direct-generation runs of this revision are complete in the code repository: \texttt{rsi-batch/} holds the driver and the two task adapters, and \texttt{experiment/decision-orchestration/} every version $\Pi_r$ with each round's report, proposals, trials and decision, the test-set predictions, request logs with billed costs, and \texttt{summary.md} listing every number. A run is started with \texttt{rsi-batch/run\_parseme.sh LANG 12} or \texttt{rsi-batch/run\_umr\_v11.sh LANG 12} and tested with \texttt{rsi-batch/evaluate\_test.py}.

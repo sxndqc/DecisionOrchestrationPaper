@@ -3,49 +3,17 @@
 \label{sec:method}
 
 \paragraph{Setting.}
-An annotation scheme maps an input $x$ (a sentence, or a document) to a structured annotation $y$: a set of typed token groups, a graph, a set of relations. In the cold start we have the scheme's prose guideline, the external resources it refers to (e.g., a frame lexicon), an automatic scorer, and a few annotated sentences. We train no model weights. We write, and then learn, a \emph{procedure} $\Pi$ that maps $x$ to $y$.
+An annotation scheme defines a structured annotation $y$ for a sentence or document $x$: in PARSEME, a set of categorized, possibly discontinuous token groups per sentence; in \umr, one rooted graph per sentence plus document-level temporal, modal and coreference relations. In the cold start we have a guideline, the resources it refers to (for \umr, PropBank frames; \citealp{palmer2005propbank}), a scorer and a handful of gold annotations. We build, and later learn, a procedure $\Pi$ that maps $x$ to $y$.
 
-\subsection{Procedures: rules around closed decisions}
-\label{sec:procedure}
-A guideline is mostly a procedure: it says where to look, which units to consider, which tests to apply in which order, and how to write the result. Only some steps need judgment. $\Pi$ makes this split explicit (Figure~\ref{fig:overview}). It consists of three parts.
-\begin{itemize}[leftmargin=*,itemsep=1pt,topsep=2pt]
-\item \textbf{Rules} enumerate candidates from the input (words, spans, verb--object pairs, the senses of a verb in a lexicon, the mentions before a pronoun) and decide what is decidable without judgment (number formats, function words, the assembly of the output).
-\item \textbf{Closed questions} cover the rest. A question names its subject in the input and lists its options, each with a one-line description taken from the guideline: a choice (``which category is \emph{give up} here: VPC.full, VPC.semi, none''), a yes/no question, or a graded score. Questions are asked in rounds; a round may depend on the answers of the previous one.
-\item \textbf{Parameters} $\theta$, such as the probability an option needs before a rule acts on it.
-\end{itemize}
-A decision model answers every question of a round at once with a probability distribution over its options and no text. Rules read the distributions against $\theta$ and assemble $y$. The output is well-formed by construction, since only rules write it, and every decision carries a probability that can be inspected, thresholded or routed. In our implementation a procedure is a folder of Python files with their question texts and option lists, which makes it readable and editable by a person and by a language model alike.
+\paragraph{Skills, registry and execution.}
+$\Pi$ consists of \textbf{skills}, a \textbf{registry} and numeric parameters $\theta$. A skill has an input schema, an output schema (its \emph{emit}) and an implementation: code (a \emph{rule node}) or a model call (a \emph{decision node}). The registry declares \emph{waves} that run in order; within a wave, a dispatcher maps fields of a skill's emit to the next skill, growing a tree of nodes until every branch ends in a leaf. Control flow is thus a fixed function of typed decisions: answers can change tree shape and call counts, but the model cannot choose an undeclared skill.
+In \umr (Table~\ref{tab:nodes}, appendix), \skill{sent\_type} routes a span to \skill{discourse}, \skill{predicate}, \skill{np\_phrase} or \skill{special\_entity}, or stops it as a leaf; fragments leave typed placeholders that go back to \skill{sent\_type}; rule nodes re-dispatch uncovered tokens; later waves merge co-referring nodes and add document-level relations. The PARSEME procedure is the smallest instance: a rule node enumerates candidates from the tokens, lemmas, parts of speech and dependency relations supplied with the data, a closed decision node asks one question per candidate, and the output handler resolves overlaps and writes the \texttt{.cupt} file (Appendix~\ref{app:parseme}).
 
-\paragraph{Decision model.}
-We use Jev \citep{typesafe2026jev}, a model served behind a typed closed-question interface (choice, yes/no, score) that returns only probabilities. The interface fixes what the model can do: it never writes structure, so a procedure is the only place where the annotation's form is defined. Decisions are cheap. At the list price we used, \$0.02 per million tokens, a decision costs a few hundred-thousandths of a dollar. Answers are cached by request, so re-running a procedure only pays for the questions that changed.
+\paragraph{Two kinds of decision nodes.}
+\label{sec:decisions}
+A decision node has two implementations that produce the \emph{same} emit, so they can be swapped node by node. In a \textbf{fragment decision}, an LLM receives the skill's instructions (the relevant part of the guideline), the span and the sentence, may call tools for examples and frames, and answers through the emit schema, for example with a graph fragment; it never writes a whole graph.
+In a \textbf{closed decision}, the skill's code enumerates candidates from the input (the words of a span, the senses and roles of a verb, the allowed categories) and asks \emph{closed questions}: yes/no, a choice among options that each carry a one-line description from the guideline, or a graded score. A decision model returns a distribution over the options and no text. The skill is a coroutine that yields rounds of questions and returns an emit built by rules, which read the distributions against thresholds $\theta$. \skill{predicate}, for instance, asks for the head, then its sense, aspect, modal strength and polarity, then the role of every content word (Figure~\ref{fig:overview}b); a PARSEME candidate's question lists the categories its kind allows plus \emph{none} (``\emph{gave + up}: VPC.full, VPC.semi, none''), and the candidate is kept when its best option is a category with $p\geq 0.5$. Closed mode needs no model that can write structured text, and every decision comes with a probability.
 
-\subsection{Learning the procedure in small batches}
-\label{sec:reflection}
-A hand-written procedure encodes the guideline as its author read it; the gold data encode the conventions annotators actually followed. We close the gap by editing the procedure, never model weights, a few sentences at a time (Algorithm~\ref{alg:reflect}). Each round $r$ takes the next batch $B_r$ of five training sentences and parses it with the current procedure. A \emph{reflector}, a general LLM (Claude Sonnet 5.5), reads a report of the batch: the gold and predicted annotations, the scorer's findings, and, for every node, the questions asked and the distributions Jev returned. It sees the procedure's editable files and the titles of edits tried in earlier rounds, diagnoses the most costly differences and proposes at most three edits, each an exact find-and-replace in one file: a new option with the rule branch that uses it, a new question where a rule guessed, a changed threshold, a convention written into a rule, or a clarified option description.
-
-Every edit is \emph{measured} before it is kept. It is applied on top of the edits already accepted in the round, and the procedure is re-run on three sets: the batch, a regression set (the batches of the two previous rounds) and a fixed development set. The edit stays if the mean $F$ over the three rises by at least 0.3, development $F$ does not fall by more than 0.5, regression $F$ by no more than 1.0, and no new runtime errors appear. Rejected edits go back to the reflector once, with their measured effect on each set, to be narrowed or rewritten. Because Jev's answers are cached, a trial pays only for the questions that the edit changes; a whole round costs cents in decisions and a few cents in reflector calls.
-
-Small batches keep the reflector's context short and its diagnosis specific, and they make the procedure's history a sequence of small, attributable, tested changes. The regression and development sets keep the procedure from overfitting to the batch; we find that a development set of ten sentences is too small to do so reliably (\S\ref{sec:analysis}).
-
-\begin{algorithm}[t]
-\small
-\caption{Measured reflection in small batches.}
-\label{alg:reflect}
-\begin{algorithmic}[1]
-\Require seed procedure $\Pi_0$, training pool $P$, development set $D$, batch size $b{=}5$
-\For{$r = 1, \dots, R$}
-  \State $B \gets$ next $b$ sentences of $P$; $G \gets$ batches of rounds $r{-}2, r{-}1$
-  \State $s \gets \textsc{Score}(\Pi, \{B, G, D\})$
-  \State $E \gets \textsc{Reflect}(\Pi, \textsc{Report}(\Pi, B))$ \Comment{$\leq 3$ edits}
-  \For{$e \in E \cup \textsc{Revise}(\text{rejected})$}
-    \State $s' \gets \textsc{Score}(e(\Pi), \{B, G, D\})$
-    \If{$\bar{s}' - \bar{s} \geq 0.3 \wedge s'_D - s_D \geq -0.5 \wedge s'_G - s_G \geq -1$}
-      \State $\Pi \gets e(\Pi)$; $s \gets s'$
-    \EndIf
-  \EndFor
-\EndFor
-\end{algorithmic}
-\end{algorithm}
-
-\subsection{Routing uncertain decisions}
-\label{sec:cascade}
-Each decision comes with a probability, so the procedure knows which of its decisions are uncertain. In the \emph{cascade}, a question whose top option has probability below $\tau$ is asked again of a cheap generative model (Claude Haiku 5.5), given the same input and the same question and options; its answer replaces Jev's. The procedure itself is unchanged, and only uncertain questions pay the higher price.
+\paragraph{Traces and attribution.}
+\label{sec:trace}
+Every node records its input, its decision (in closed mode, the questions and full distributions) and its emit. The scorer's alignment of predicted to gold units lets us record the node that produced each aligned predicted unit; gold units that nothing predicted have no producer, such as a PARSEME expression that no rule proposed. This is output provenance, not causal attribution: upstream routing, candidate omissions and alignment errors can change downstream losses. A fine-grained \umr judge scores 25 aspects separately (Appendix~\ref{app:judge}). Reflection reads these records.
