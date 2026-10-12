@@ -43,3 +43,17 @@
 - 生成输出在 checkout 外；用户可在本地/Overleaf 以 `main.tex` 编译。已保存 cloud 启动/安装步骤供复用。
 
 参考：[Reviewer guidelines](https://aclrollingreview.org/reviewerguidelines)、[Review form](https://aclrollingreview.org/reviewform)、[Author checklist](https://aclrollingreview.org/authorchecklist)。当前版本是保留实验空位的修订稿，不能据编译成功称已满足投稿实证要求。
+
+## 2026-10-12：新数据并入正文
+
+在上面这版修订稿（a71ebf5）的基础上，把 `sxndqc/SkillParseUMR` 分支 `claude/dazzling-cannon-7wnkju`（`experiment/decision-orchestration/summary.md`）的新实验并入相应章节，原有结果和待做标记保留：
+
+- **E9 第二个 benchmark（已做）**：PARSEME 1.2 中文、1.1 英文；5 句一批、12 轮、Sonnet 反思、Jev 决策。中文 52.4→57.8（加 Haiku 路由 58.5），英文 44.3→46.3。英文高于 2018 共享任务最好系统（33.3）和我们查到的最好已发表结果（Rohanian et al. 2019，41.9）。新表 Table 1，附录 H。
+- **E10 英文 UMR（已做）**：以中文 Π0 为种子，26.0→30.1，路由后 30.5；Haiku 直接生成 46.4。
+- **E2 部分**：清单 + 10 句 gold 的 Haiku 直接生成，H 上 42.0，已加进 Table 2。
+- **E5 部分**：K4 在 H 上路由到 Haiku，τ=0.7 时 42.6，τ=0.9 时 41.6，已加进 Table 4。
+- **E11 部分**：新实验的计费成本见附录 J（Table 12），新实验合计约 $70。
+- **新方法变体**：5 句一批的测量式反思（§4，附录 Algorithm 1），以及 J0 和修订版程序（np-relations-v1 → Π0）的批量运行。
+- **新分析（§7）**：选项要跟随标注惯例而不是指南的完整清单（27 个 aspect 值：33.3→38.5）；UMR 上的 oracle（40.4→49.0→55.9）；开发集大小。
+- **口径说明**：用发布的脚本和数据，PARSEME 中文的 unseen 数是 348，不是官方的 300，所以 unseen F 只在我们的表内可比。另外，Π0 是在看过 H 上的结果之后修出来的，所以 H 上的比较都是回顾性的。这两点都写进了附录 A 和 Limitations。
+- **篇幅**：正文控制在 8 页。answerer 对比表、K 轮次表、阈值和一致率的细节、数据和曝光清单都移到附录 A 和 D。

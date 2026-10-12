@@ -20,6 +20,8 @@
 \usepackage{xcolor}
 \usepackage{CJKutf8}
 \usepackage{tikz}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 \usetikzlibrary{positioning,arrows.meta,fit,backgrounds,calc}
 
 % ---------------------------------------------------------------- macros
@@ -29,13 +31,14 @@
 \newcommand{\Ours}{Decision orchestration\xspace}
 \newcommand{\skill}[1]{\texttt{#1}}
 \newcommand{\zh}[1]{\begin{CJK}{UTF8}{gbsn}#1\end{CJK}}
+\newcommand{\zht}[1]{\begin{CJK}{UTF8}{bsmi}#1\end{CJK}}   % traditional characters (PARSEME Chinese)
 \newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
 \newcommand{\tbd}{\textcolor{red}{--}}
 \newcommand{\exper}[1]{\textcolor{red}{\textsc{[#1]}}}   % pointer to an experiment in PLAN.md
 \newcommand{\F}{F\xspace}
 
 \title{Decision Orchestration:\\
-Learning Annotation Procedures from a Handful of Gold Documents}
+Learning Annotation Procedures from a Handful of Gold Annotations}
 
 \author{Anonymous ACL submission}
 
