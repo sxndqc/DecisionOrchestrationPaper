@@ -1,0 +1,145 @@
+%=====================================================================
+\section{Results}
+\label{sec:results}
+
+\begin{table*}[t]
+\centering\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}llrcccc@{}}
+\toprule
+& & \multicolumn{1}{c}{training} & \multicolumn{2}{c}{Chinese (1.2)} & \multicolumn{2}{c}{English (1.1)} \\
+\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+System & & \multicolumn{1}{c}{sentences} & F & unseen F & F & unseen F \\
+\midrule
+\multicolumn{7}{@{}l}{\emph{Supervised systems, trained on the full training data}} \\
+\quad best open track of the shared task & & all & 71.9 & 64.2 & 33.3 & 23.7 \\
+\quad best closed track of the shared task & & all & 60.9 & 45.7 & 32.9 & 17.6 \\
+\quad best published English result \citep{rohanian2019bridging} & & all & -- & -- & 41.9 & -- \\
+\midrule
+\multicolumn{7}{@{}l}{\emph{Direct generation}} \\
+\quad Claude Haiku 5.5, 10 gold examples & & 10 & 39.5 & 32.6 & 41.1 & 34.8 \\
+\midrule
+\multicolumn{7}{@{}l}{\emph{Decision orchestration (Jev decisions, Sonnet 5.5 reflection)}} \\
+\quad seed procedure & $\Pi_0$ & 0 & 52.4 & 36.5 & 44.3 & 37.8 \\
+\quad after 6 rounds & $\Pi_6$ & 30 & 56.9 & 43.1 & \textbf{46.3} & \textbf{38.8} \\
+\quad after 12 rounds & $\Pi_{12}$ & 60 & 57.8 & 44.3 & \textbf{46.3} & \textbf{38.8} \\
+\quad $\Pi_{12}$ + routing to Haiku ($\tau{=}0.7$) & & 60 & \textbf{58.5} & \textbf{45.7} & 44.1 & 37.4 \\
+\bottomrule
+\end{tabular}
+\caption{PARSEME test sets: MWE-based F1 and F1 on VMWEs unseen in the training data, computed with the official script from the systems' released predictions (our unseen counts differ from the published ones, \S\ref{sec:setup}). Best open track: TRAVIS-mono (Chinese), Milos (English); best closed track: ERMI, TRAPACC. The published English result is quoted from its paper. ``Training sentences'' are the annotated sentences a system used; the reflector read five per round.}
+\label{tab:parseme}
+\end{table*}
+
+\subsection{Learning a procedure from 60 sentences}
+\label{sec:res-parseme}
+Table~\ref{tab:parseme} gives the PARSEME results. The seed procedures, written before any training sentence was read, already exceed direct generation with ten gold examples (52.4 vs.\ 39.5 F in Chinese, 44.3 vs.\ 41.1 in English), and reflection adds 5.5 F in Chinese (7.8 on unseen expressions) and 2.0 in English. In English the learned procedure is 13 points above the best 2018 shared-task system and 4.4 above the best later result we know of, both trained on 3,471 sentences. Those systems predate current pretrained models, so the comparison shows how little gold the procedure needs, not a settled state of the art. In Chinese, the open-track systems, trained on 35,326 sentences with pretrained encoders, remain 14 points ahead. Precision is the weak side: the final Chinese procedure finds 71\% of the gold VMWEs, but only 49\% of its predictions are correct. Routing to Haiku re-asked 361 Chinese questions (\$0.09) and gained 0.7 F; in English it lost 2.2 F, as Haiku accepted 123 more candidates, 13 of them correct. Whether to route is a question for development data.
+
+\begin{table*}[t]
+\centering\small
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{@{}lllcccc@{}}
+\toprule
+System & Decisions by & Refl. docs (sent.) & T1: 0004--05 & T2: 0005--07 & H: 0015--24 \\
+ & & & \F / Comp. & \F / Comp. & \F / Comp. \\
+\midrule
+\multicolumn{6}{@{}l}{\emph{Baselines: one call per sentence}} \\
+Single call & Sonnet 5.5 & 0 & 32.7 / 27.7 & 29.4 / 24.9 & \tbd \\
+Single call & Qwen3.5-9B & 0 & -- & -- & \phantom{0}0.0 / \phantom{0}0.0 \\
+Detailed single call & Qwen3.5-9B & 0 & -- & -- & \phantom{0}4.9 / \phantom{0}5.3 \\
+Inventory + 10 gold sentences & Haiku 5.5 & 0 (10)$^\S$ & -- & -- & 42.0 / n.c. \\
+\midrule
+\multicolumn{6}{@{}l}{\emph{Fragment-mode orchestration (unmeasured reflection by Opus 5.5)}} \\
+$R_0$ (seed) & Sonnet 5.5 & 0 & 45.3 / 44.0 & \tbd & \tbd \\
+$R_{13}$ & Sonnet 5.5 & 1 (51) & 50.8 / 49.4 & -- & -- \\
+$R_{23}$ & Sonnet 5.5 & 2 (111) & \textbf{52.6} / \textbf{51.2} & -- & -- \\
+$R_{32}$ & Sonnet 5.5 & 3 (142) & 52.6 / 51.1 & 55.2 / 52.1 & \tbd \\
+$R_{42}$ & Sonnet 5.5 & 4 (201) & n/a & \textbf{55.6} / \textbf{52.2} & \tbd \\
+$R_0$ (seed) & DeepSeek V4.1$^\ddagger$ & 0 & -- & 30.8 / 29.0 & \tbd \\
+$R_{42}$ (self-reflection) & DeepSeek V4.1$^\ddagger$ & 2 (110) & -- & 36.0 / 34.0 & \tbd \\
+$R_0$ (seed) & Qwen3.5-9B & 0 & -- & -- & 17.6 / 18.5 \\
+\midrule
+\multicolumn{6}{@{}l}{\emph{Closed-mode orchestration}} \\
+$J_0$ (seed) & Jev & 0$^\dagger$ & 36.8 / 37.1 & 34.5 / 33.8 & 34.2 / n.c. \\
+$J_2 = K_0$ (unmeasured reflection) & Jev & 2 (111) & 40.2 / 41.3 & 38.9 / 38.0 & 39.5 / 38.4 \\
+$K_4$ (last reported round) & Jev & 6 (168) & -- & -- & 40.1 / 39.2 \\
+\quad + routing to Haiku 5.5, $\tau{=}0.7$ & Jev, Haiku & 6 (168) & -- & -- & \textbf{42.6} / n.c. \\
+\quad + routing to Haiku 5.5, $\tau{=}0.9$ & Jev, Haiku & 6 (168) & -- & -- & 41.6 / n.c. \\
+\midrule
+\multicolumn{6}{@{}l}{\emph{Closed-mode orchestration, measured reflection in 5-sentence batches (Sonnet 5.5)}} \\
+$J_0$ + 10 rounds & Jev & (50) & -- & -- & 35.7 / n.c. \\
+Revised procedure, as released & Jev & 2 (111) & -- & -- & 33.3 / n.c. \\
+$\Pi_0$: + aspect and polarity conventions & Jev & 2 (111) & -- & -- & 38.5 / n.c. \\
+$\Pi_{12}$ & Jev & 2 (111) + (60) & -- & -- & 38.2 / n.c. \\
+\bottomrule
+\end{tabular}
+\caption{Main results on Chinese \umr (AnCast++, macro average over documents; \F = sentence-graph F, Comp.\ = comprehensive score including the document level). ``Refl. docs'' counts automatic-reflection documents only, not all gold exposure. Closed seeds and their descendants additionally inherit manual tuning on 0001--0003 (see \S\ref{sec:setup}); round 4 also selects using development scores. ``n/a'': 0004 was a training document. $^\dagger$$J_0$'s rules were tuned by hand on 0001--0003. $^\ddagger$Parsed without thinking (Appendix~\ref{app:umr-more}). $^\S$Ten gold sentences as in-context examples. ``(50)'': training sentences read in batches. ``n.c.'': not computed; these runs stop before the document wave. Red dashes are pending experiments (\exper{E1}); ``--'' marks a cell not planned; further baselines and $K_1$/$K_2$ on H are pending (\exper{E2}, \exper{E13}).}
+\label{tab:main}
+\end{table*}
+
+\subsection{Orchestration versus generating the annotation}
+\label{sec:res-main}
+Table~\ref{tab:main} gives the \umr results. Asked for a whole graph, Sonnet 5.5 reaches 29--33 \F; inside the procedure it starts at 45.3 \F on T1 and adds the document level (Comp.\ 44.0 vs.\ 27.7). For a 9B model, single calls yield no scorable graph on any of 24 documents and a detailed single call reaches 4.9 \F on H, while inside the procedure it reaches 17.6, ahead on all 21 documents where both were run. A stronger direct baseline changes the picture for closed decisions. Given the concept inventory and ten gold sentences, Haiku scores 42.0 \F on H, above every closed procedure without routing and level with the best one with routing (42.6); in English it scores 46.4 against 30.1 (Table~\ref{tab:batch}). Where the output is mostly graph structure, closed decisions alone do not beat a capable generator given a few examples (\S\ref{sec:analysis}); a generic tool-using agent is pending \exper{E2}.
+
+\paragraph{Who answers the decisions.}
+\label{sec:res-scale}
+Very different models can serve the same procedure (Table~\ref{tab:answerer}, appendix), but $K_0$, built with Jev (39.5), loses 8.7--13.9 \F with the other decision models, partly through its thresholds (\S\ref{sec:res-calib}).
+
+\subsection{Learning from a handful of gold annotations}
+\label{sec:res-few}
+\paragraph{\umr, one document per round.}
+In fragment mode, with Sonnet parsing and Opus reflecting, one training document (51 sentences) raises T1 from 45.3 to 50.8 \F and a second raises it to 52.6; temporal relations improve most (29.5 $\rightarrow$ 43.6), and a third and fourth document leave test scores flat. First parses of new documents agree (Appendix~\ref{app:traj}). DeepSeek gains 5.2 \F on T2 reflecting on itself; Qwen3.5-9B does not improve (\S\ref{sec:analysis}). In closed mode, two rounds of unmeasured reflection raise the Jev procedure on T1 (36.8 $\rightarrow$ 40.2) and T2 (34.5 $\rightarrow$ 38.9; 0003 was used for seed tuning). Measured rounds on four more documents (Table~\ref{tab:rounds}, appendix) give 39.5 ($K_0$), 40.9 ($K_3$) and 40.1 ($K_4$) on H, while the training documents gain an order of magnitude more; intermediate values await source verification \exper{E13}.
+
+\paragraph{Five sentences per round.}
+Table~\ref{tab:batch} summarizes the batch runs. Twelve rounds cost \$0.53--4.27 in reflector calls and at most \$0.74 in decisions. On PARSEME, development gains carried over to the test sets. Reflection also adapts a procedure to a new language: the Chinese \umr procedure gains 4.1 \F on English, learning conventions such as contracted negation, clitic pronouns, plural nouns and person names. On Chinese \umr, twelve rounds left H unchanged (\S\ref{sec:analysis}). Of 190 proposed edits, 83 were kept: 62 of 146 rule edits, 9 of 17 threshold changes, 6 of 11 option changes and 6 of 16 rewordings. On PARSEME, 26 of the 37 kept edits change candidate rules, such as a new candidate kind or an exception list (Appendix~\ref{app:edits}).
+
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lcrccr@{}}
+\toprule
+Run & kept & dev $\Delta$ & $\Pi_0$ & $\Pi_{R}$ & \$ \\
+\midrule
+PARSEME zh & 20/34 & +7.6 & 52.4 & 57.8 & 0.53 \\
+PARSEME en & 17/39 & +2.9 & 44.3 & 46.3 & 0.69 \\
+\umr zh, $J_0$$^\ast$ & 18/32 & +7.3 & 34.2 & 35.7 & 2.27 \\
+\umr zh, $\Pi_0$ & 15/42 & +0.6 & 38.5 & 38.2 & 4.27 \\
+\umr en, zh $\Pi_0$ & 13/43 & +7.5 & 26.0 & 30.1 & 3.41 \\
+\midrule
+\multicolumn{4}{@{}l}{\umr en: $\Pi_{12}$ + routing ($\tau{=}0.7$)} & 30.5 & \\
+\multicolumn{4}{@{}l}{\umr en: Haiku, 10 gold sentences} & 46.4 & \\
+\bottomrule
+\end{tabular}
+\caption{Measured reflection in 5-sentence batches ($R{=}12$ rounds): edits kept/tried, change in development score, test score of the seed and the last version (PARSEME: MWE-based F; \umr: \F on H and the English test set), reflector cost. $^\ast$Ten rounds, ten development sentences.}
+\label{tab:batch}
+\end{table}
+
+\subsection{Threshold adaptation and routing}
+\label{sec:res-calib}
+\paragraph{Thresholds do not transfer; retuning is cheap.}
+Answered by the OpenAI Decisions API, $K_0$ scores 25.6 \F on H. Coordinate descent on four gold documents changes two of its ten thresholds and raises \F on H, which tuning never saw, to 28.5 (Appendix~\ref{app:calib}). This is task-level threshold adaptation, not calibration of answer probabilities \exper{E4}.
+
+\paragraph{Routing.}
+In a 20-sentence pilot, routing questions with confidence below $\tau=0.7$ from Jev to Sonnet (Table~\ref{tab:routing}) recovers 75\% of the \F that Sonnet gains by answering everything, at 26\% of its cost. On H, routing $K_4$'s uncertain questions to the cheaper Haiku adds 2.5 \F at $\tau=0.7$ but only 1.5 at $\tau=0.9$, where more questions are routed: Haiku is better than Jev on Jev's most uncertain questions, not on all of them. Jev's confidence predicts agreement with Sonnet (Appendix~\ref{app:umr-more}), though agreement is not accuracy. The full curve over $\tau$ and gold-answered routing are pending \exper{E5}.
+
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Answerer & \F & LLM calls & Cost \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{$J_2$ on 0010+0012 (20 sentences)}} \\
+Jev only & 39.1 & 0 & $<$\$0.1 \\
+Jev; $c<0.7$ to Sonnet & 42.4 & 504 & $\approx$\$9 \\
+Sonnet only & 43.5 & 1,292 & $\approx$\$34 \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{$K_4$ on H (138 sentences)}} \\
+Jev only & 40.1 & 0 & \$0.75 \\
+Jev; $c<0.7$ to Haiku & 42.6 & 2,554 & +\$1.18 \\
+Jev; $c<0.9$ to Haiku & 41.6 & 2,988 & +\$1.47 \\
+Haiku, direct generation & 42.0 & 138 & \$0.19 \\
+\bottomrule
+\end{tabular}
+\caption{Routing uncertain closed decisions. Within a block, questions and rules are the same in every row; only the answerer of uncertain questions changes. Pilot: public API prices; H: billed costs, routing cost added to Jev's.}
+\label{tab:routing}
+\end{table}

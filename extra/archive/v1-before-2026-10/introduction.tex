@@ -1,0 +1,77 @@
+%=====================================================================
+\section{Introduction}
+\label{sec:intro}
+
+%---------------------------------------------------------------------
+\begin{figure*}[t]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+    font=\small,
+    >={Stealth[length=2mm]},
+    rule/.style={draw, rounded corners=2pt, fill=gray!15, minimum height=5.5mm, inner sep=2.5pt, font=\footnotesize\ttfamily},
+    dec/.style={draw, rounded corners=2pt, fill=blue!10, minimum height=5.5mm, inner sep=2.5pt, font=\footnotesize\ttfamily},
+    box/.style={draw, rounded corners=3pt, inner sep=5pt, align=left},
+    ttl/.style={font=\small\bfseries, anchor=south west},
+  ]
+  % ---------------- (a) the procedure
+  \node[dec] (st) at (2.6,0) {sent\_type};
+  \node[dec] (pr) at (0.7,-1.2) {predicate};
+  \node[dec] (np) at (2.6,-1.2) {np\_phrase};
+  \node[dec] (se) at (4.65,-1.2) {special\_entity};
+  \node[rule] (cov) at (0.7,-2.3) {coverage};
+  \node[rule] (ant) at (2.6,-2.3) {antecedent};
+  \draw[->] (st) -- (pr); \draw[->] (st) -- (np); \draw[->] (st) -- (se);
+  \draw[->] (pr) -- (cov); \draw[->] (pr) -- (ant);
+  \draw[->, dashed] (pr.north) to[bend left=35] node[font=\scriptsize\itshape, above left, pos=0.4] {open slots} (st.west);
+  \node[rule] (re) at (0.7,-3.5) {reentrancy};
+  \node[dec]  (doc) at (2.6,-3.5) {document};
+  \node[rule] (out) at (4.65,-3.5) {assemble};
+  \draw[->] (re) -- (doc); \draw[->] (doc) -- (out);
+  \node[font=\scriptsize\itshape, anchor=west] at (-0.4,-2.9) {later waves};
+  \draw[gray, densely dotted] (-0.4,-2.75) -- (5.9,-2.75);
+  \node[rule, minimum height=3mm, minimum width=4mm] (lr) at (-0.2,-4.35) {};
+  \node[font=\scriptsize, anchor=west] at (lr.east) {rule node (code)};
+  \node[dec, minimum height=3mm, minimum width=4mm] (ld) at (2.5,-4.35) {};
+  \node[font=\scriptsize, anchor=west] at (ld.east) {decision node (model)};
+  \node[ttl] at (-0.5,0.45) {(a) The guideline as a procedure};
+  % ---------------- (b) a closed decision
+  \node[box, fill=blue!4, text width=6.6cm, anchor=north west] (q) at (6.6,0.3) {%
+    \textbf{Code enumerates} the content words of the clause and the PropBank senses of each verb.\\[3pt]
+    \textbf{Q1} Which word heads the clause?\\
+    \quad \emph{explosion} .07 \quad \emph{killed} \textbf{.91} \quad \emph{people} .02\\[1pt]
+    \textbf{Q2} Sense of \emph{kill}? \quad kill-01 \textbf{.88} \quad kill-02 .09\\[1pt]
+    \textbf{Q3} Role of \emph{explosion}? \quad ARG0 \textbf{.71} \quad none .18\\[3pt]
+    \textbf{Rules build} \texttt{(k / kill-01 :ARG0 ...)}, reading each answer against a threshold $\theta$. An answer with confidence $<\tau$ can be routed to a stronger model or to a person.};
+  \node[ttl] at ([yshift=2pt]q.north west) {(b) A closed decision inside \texttt{predicate}};
+  % ---------------- (c) learning the procedure
+  \node[box, fill=green!6, text width=4.8cm, anchor=north west] (l) at (13.9,0.3) {%
+    \textbf{Given} a few gold documents, or batches of five gold sentences:\\[3pt]
+    \textbf{Calibrate} the thresholds $\theta$ by re-parsing and scoring.\\[2pt]
+    \textbf{Route} decisions with confidence $<\tau$.\\[2pt]
+    \textbf{Reflect}: find each difference from gold, attribute it to a node through the trace, edit that node (text, options, rules, $\theta$, registry), re-parse, and in closed mode, keep the edit only if its trial meets the acceptance criteria.\\[3pt]
+    \textbf{Result}: a new version of the procedure, as a readable diff.};
+  \node[ttl] at ([yshift=2pt]l.north west) {(c) Learning the procedure};
+  % ---------------- arrows between panels
+  \draw[->, thick] (se.east) -- ++(0.5,0) |- ([yshift=4mm]q.west);
+  \draw[->, thick] (q.east |- l.west) -- (l.west);
+  \coordinate (low) at ([yshift=-3mm]l.south);
+  \draw[->, thick, dashed] (l.south) -- (low) -| node[font=\scriptsize\itshape, pos=0.3, below] {edits: a new version of the procedure} (out.south);
+\end{tikzpicture}}
+\caption{Decision orchestration. (a)~The guideline is compiled into skills dispatched by a registry. Rule nodes are code; decision nodes consult a model. Shown is part of the \umr procedure (all nodes: Table~\ref{tab:nodes}, appendix); the PARSEME procedure is one rule node that enumerates candidates, one closed decision node and an output handler (Appendix~\ref{app:parseme}). (b)~In closed mode, a decision node asks questions whose options code has enumerated, and rules read the answer probabilities. (c)~With a handful of gold annotations, the procedure itself is learned. Example sentence, in English for readability: \emph{Police said the explosion killed two people.}}
+\label{fig:overview}
+\end{figure*}
+%---------------------------------------------------------------------
+
+New annotation schemes, and old schemes in new languages or domains, often start with a prose guideline and little gold data. Producing the first annotations is costly \citep{settles2009active}. LLMs can assist familiar labeling tasks \citep{gilardi2023chatgpt,tan2024annotation}, but whole-structure prompting can violate a scheme's conventions and produce malformed output \citep{ettinger2023expert,sun2024chinese}, and supervised systems need thousands of annotated sentences.
+
+We propose \textbf{decision orchestration} (Figure~\ref{fig:overview}): manually encode a guideline as an executable procedure, separating deterministic dispatch and assembly from local model judgments. Code enumerates candidates, looks up resources and writes the output; models decide what needs understanding, such as a verb's sense or whether a verb and a noun form a light-verb construction. A decision node returns a schema-constrained fragment or distributions over closed options enumerated by code, so LLMs and closed-question services \citep{typesafe2026jev,openai2026decisions,microsoft2026decision} can serve the same procedure. The procedure is then adapted under gold supervision without updating model weights: \textbf{threshold tuning} fits how rules read answer probabilities to the task metric, \textbf{routing} sends uncertain answers to a stronger model, and \textbf{reflection} proposes local edits from aligned traces, which in closed mode are kept only if they measurably help, with one gold document or five gold sentences per round. Every revision is a readable artifact.
+
+We test the method on two schemes that differ in how much of the output is structure, each in Chinese and English: verbal multiword expressions \citep[PARSEME;][]{ramisch2018parseme,ramisch2020parseme}, sets of categorized token groups, and Uniform Meaning Representation \citep[\umr;][]{gysel2021design}, graphs. Our findings:
+\begin{itemize}[leftmargin=*,itemsep=2pt,topsep=2pt]
+\item On PARSEME, a closed procedure learned from \textbf{60 gold sentences}, five at a time, reaches 46.3 F in English, \textbf{4.4 points above the best published result} we know of \citep{rohanian2019bridging} and 13 above the best 2018 shared-task system, both trained on 3,471 sentences, and 57.8 F in Chinese, \textbf{18 points above} Claude Haiku annotating directly with ten gold examples, for under a dollar of reflection per language.
+\item On \umr, a 9B model reaches 17.6 F inside the procedure against 4.9 with a detailed prompt, two documents of reflection raise Sonnet from 45.3 to 52.6 F, and routing adds 2.5 F to a closed procedure. But direct generation with ten gold examples matches the best closed procedure in Chinese (42.0 vs.\ 42.6) and exceeds it by 16 F in English: where the output is mostly structure, closed decisions are not enough.
+\item Measurement shows where a procedure departs from the annotation: offering all 27 aspect values of the \umr guidelines, where the gold uses seven, together with one dropped polarity rule, cost 5.2 F.
+\end{itemize}
+
+\paragraph{Scope and shared infrastructure.} The companion study \emph{Can LLMs Build Better Annotators? Self-Improving Harnesses for Ontology-Guided Annotation} examines instruction revision in a three-call whole-graph harness. It shares our UMR data, alignment and judge and reuses procedural runs for comparison; shared runs are not independent replication. The PARSEME and English \umr runs are ours alone.

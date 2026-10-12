@@ -1,0 +1,18 @@
+%=====================================================================
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{LLMs as annotators.}
+LLMs can assist crowd labeling \citep{wang2021reduce,gilardi2023chatgpt,he2024annollm,ziems2024css,tan2024annotation}. Human--LLM collaboration allocates uncertain items or verifies labels \citep{li2023coannotating,wang2024humanllm}; we route decisions within structured items. GoLLIE \citep{sainz2024gollie} learns to follow code-form guidelines, Code4Struct \citep{wang2023code4struct} represents event structures as code, and guideline learning \citep{pang2023guideline} induces text from errors. Here the harness executes a manually encoded procedure whose rules and thresholds can also change.
+
+\paragraph{LM programs and structured output.}
+Prompt chains and decomposed prompting compose model calls \citep{wu2022aichains,khot2023decomposed}; programs can call models or declare their constraints \citep{gao2023pal,gupta2023visprog,beurer2023lmql,khattab2024dspy}. Grammar constraints control output form \citep{willard2023outlines,geng2023grammar}, potentially affecting reasoning \citep{tam2024speak}. Unlike model-directed agent control \citep{yao2023react}, our registry dispatches typed emits, keeps rule nodes explicit and allows closed distributions as an alternative to fragments.
+
+\paragraph{Optimizing prompts and programs.}
+Prompts can be searched or optimized from feedback \citep{zhou2023ape,pryzant2023protegi,yuksekgonul2025textgrad,yang2024opro,opsahl2024mipro}. GEPA reflects on traces \citep{agrawal2025gepa}; ACE grows a playbook \citep{zhang2025ace}. Workflows and scaffolds can also be searched \citep{zhang2025aflow,hu2025adas,zelikman2024stop}. Self-feedback alone is unreliable \citep{huang2024cannot}. Our supervised reflection uses structured gold alignment to propose node-local edits to options, rules and text, with measured selection in closed mode. This resembles transformation-based learning and data programming in producing readable artifacts \citep{brill1995transformation,ratner2017snorkel}, without claiming causal attribution from traces alone.
+
+\paragraph{Threshold adaptation and cascades.}
+Probability calibration and selective prediction study confidence and abstention \citep{guo2017calibration,jiang2021calibration,zhao2021calibrate,kamath2020selective}; cascades escalate to costlier models \citep{chen2023frugalgpt}. We instead tune program thresholds against graph scores and escalate individual closed questions. Teacher agreement is reported separately from gold correctness.
+
+\paragraph{The two tasks.}
+Verbal multiword expression identification has been evaluated in the PARSEME shared tasks \citep{ramisch2018parseme,ramisch2020parseme}. Their systems are mostly taggers or parsers trained on the full training data, from 2020 on pretrained encoders, and later work on English 1.1 reached 41.9 F \citep{rohanian2019bridging}; edition 2.0 also reports instruction-tuned LLMs \citep{scholivet2026parseme}. Supervised \amr parsers likewise use large labeled corpora \citep{bevilacqua2021spring,zhou2021structure,bai2022graph,knight2020amr3}; \umr has less gold \citep{gysel2021design,bonn2023umr,bonn2024infrastructure,bonn2025umr2}. Pipeline conversion \citep{chun2024pipeline} and SETUP \citep{markle2025setup} are parsing alternatives; matched comparisons remain pending.

@@ -2,144 +2,84 @@
 \section{Results}
 \label{sec:results}
 
-\begin{table*}[t]
-\centering\small
-\setlength{\tabcolsep}{5pt}
-\begin{tabular}{@{}llrcccc@{}}
-\toprule
-& & \multicolumn{1}{c}{training} & \multicolumn{2}{c}{Chinese (1.2)} & \multicolumn{2}{c}{English (1.1)} \\
-\cmidrule(lr){4-5}\cmidrule(lr){6-7}
-System & & \multicolumn{1}{c}{sentences} & F & unseen F & F & unseen F \\
-\midrule
-\multicolumn{7}{@{}l}{\emph{Supervised systems, trained on the full training data}} \\
-\quad best open track of the shared task & & all & 71.9 & 64.2 & 33.3 & 23.7 \\
-\quad best closed track of the shared task & & all & 60.9 & 45.7 & 32.9 & 17.6 \\
-\quad best published English result \citep{rohanian2019bridging} & & all & -- & -- & 41.9 & -- \\
-\midrule
-\multicolumn{7}{@{}l}{\emph{Direct generation}} \\
-\quad Claude Haiku 5.5, 10 gold examples & & 10 & 39.5 & 32.6 & 41.1 & 34.8 \\
-\midrule
-\multicolumn{7}{@{}l}{\emph{Decision orchestration (Jev decisions, Sonnet 5.5 reflection)}} \\
-\quad seed procedure & $\Pi_0$ & 0 & 52.4 & 36.5 & 44.3 & 37.8 \\
-\quad after 6 rounds & $\Pi_6$ & 30 & 56.9 & 43.1 & \textbf{46.3} & \textbf{38.8} \\
-\quad after 12 rounds & $\Pi_{12}$ & 60 & 57.8 & 44.3 & \textbf{46.3} & \textbf{38.8} \\
-\quad $\Pi_{12}$ + routing to Haiku ($\tau{=}0.7$) & & 60 & \textbf{58.5} & \textbf{45.7} & 44.1 & 37.4 \\
-\bottomrule
-\end{tabular}
-\caption{PARSEME test sets: MWE-based F1 and F1 on VMWEs unseen in the training data, computed with the official script from the systems' released predictions (our unseen counts differ from the published ones, \S\ref{sec:setup}). Best open track: TRAVIS-mono (Chinese), Milos (English); best closed track: ERMI, TRAPACC. The published English result is quoted from its paper. ``Training sentences'' are the annotated sentences a system used; the reflector read five per round.}
-\label{tab:parseme}
-\end{table*}
-
-\subsection{Learning a procedure from 60 sentences}
-\label{sec:res-parseme}
-Table~\ref{tab:parseme} gives the PARSEME results. The seed procedures, written before any training sentence was read, already exceed direct generation with ten gold examples (52.4 vs.\ 39.5 F in Chinese, 44.3 vs.\ 41.1 in English), and reflection adds 5.5 F in Chinese (7.8 on unseen expressions) and 2.0 in English. In English the learned procedure is 13 points above the best 2018 shared-task system and 4.4 above the best later result we know of, both trained on 3,471 sentences. Those systems predate current pretrained models, so the comparison shows how little gold the procedure needs, not a settled state of the art. In Chinese, the open-track systems, trained on 35,326 sentences with pretrained encoders, remain 14 points ahead. Precision is the weak side: the final Chinese procedure finds 71\% of the gold VMWEs, but only 49\% of its predictions are correct. Routing to Haiku re-asked 361 Chinese questions (\$0.09) and gained 0.7 F; in English it lost 2.2 F, as Haiku accepted 123 more candidates, 13 of them correct. Whether to route is a question for development data.
-
-\begin{table*}[t]
-\centering\small
-\setlength{\tabcolsep}{4.5pt}
-\begin{tabular}{@{}lllcccc@{}}
-\toprule
-System & Decisions by & Refl. docs (sent.) & T1: 0004--05 & T2: 0005--07 & H: 0015--24 \\
- & & & \F / Comp. & \F / Comp. & \F / Comp. \\
-\midrule
-\multicolumn{6}{@{}l}{\emph{Baselines: one call per sentence}} \\
-Single call & Sonnet 5.5 & 0 & 32.7 / 27.7 & 29.4 / 24.9 & \tbd \\
-Single call & Qwen3.5-9B & 0 & -- & -- & \phantom{0}0.0 / \phantom{0}0.0 \\
-Detailed single call & Qwen3.5-9B & 0 & -- & -- & \phantom{0}4.9 / \phantom{0}5.3 \\
-Inventory + 10 gold sentences & Haiku 5.5 & 0 (10)$^\S$ & -- & -- & 42.0 / n.c. \\
-\midrule
-\multicolumn{6}{@{}l}{\emph{Fragment-mode orchestration (unmeasured reflection by Opus 5.5)}} \\
-$R_0$ (seed) & Sonnet 5.5 & 0 & 45.3 / 44.0 & \tbd & \tbd \\
-$R_{13}$ & Sonnet 5.5 & 1 (51) & 50.8 / 49.4 & -- & -- \\
-$R_{23}$ & Sonnet 5.5 & 2 (111) & \textbf{52.6} / \textbf{51.2} & -- & -- \\
-$R_{32}$ & Sonnet 5.5 & 3 (142) & 52.6 / 51.1 & 55.2 / 52.1 & \tbd \\
-$R_{42}$ & Sonnet 5.5 & 4 (201) & n/a & \textbf{55.6} / \textbf{52.2} & \tbd \\
-$R_0$ (seed) & DeepSeek V4.1$^\ddagger$ & 0 & -- & 30.8 / 29.0 & \tbd \\
-$R_{42}$ (self-reflection) & DeepSeek V4.1$^\ddagger$ & 2 (110) & -- & 36.0 / 34.0 & \tbd \\
-$R_0$ (seed) & Qwen3.5-9B & 0 & -- & -- & 17.6 / 18.5 \\
-\midrule
-\multicolumn{6}{@{}l}{\emph{Closed-mode orchestration}} \\
-$J_0$ (seed) & Jev & 0$^\dagger$ & 36.8 / 37.1 & 34.5 / 33.8 & 34.2 / n.c. \\
-$J_2 = K_0$ (unmeasured reflection) & Jev & 2 (111) & 40.2 / 41.3 & 38.9 / 38.0 & 39.5 / 38.4 \\
-$K_4$ (last reported round) & Jev & 6 (168) & -- & -- & 40.1 / 39.2 \\
-\quad + routing to Haiku 5.5, $\tau{=}0.7$ & Jev, Haiku & 6 (168) & -- & -- & \textbf{42.6} / n.c. \\
-\quad + routing to Haiku 5.5, $\tau{=}0.9$ & Jev, Haiku & 6 (168) & -- & -- & 41.6 / n.c. \\
-\midrule
-\multicolumn{6}{@{}l}{\emph{Closed-mode orchestration, measured reflection in 5-sentence batches (Sonnet 5.5)}} \\
-$J_0$ + 10 rounds & Jev & (50) & -- & -- & 35.7 / n.c. \\
-Revised procedure, as released & Jev & 2 (111) & -- & -- & 33.3 / n.c. \\
-$\Pi_0$: + aspect and polarity conventions & Jev & 2 (111) & -- & -- & 38.5 / n.c. \\
-$\Pi_{12}$ & Jev & 2 (111) + (60) & -- & -- & 38.2 / n.c. \\
-\bottomrule
-\end{tabular}
-\caption{Main results on Chinese \umr (AnCast++, macro average over documents; \F = sentence-graph F, Comp.\ = comprehensive score including the document level). ``Refl. docs'' counts automatic-reflection documents only, not all gold exposure. Closed seeds and their descendants additionally inherit manual tuning on 0001--0003 (see \S\ref{sec:setup}); round 4 also selects using development scores. ``n/a'': 0004 was a training document. $^\dagger$$J_0$'s rules were tuned by hand on 0001--0003. $^\ddagger$Parsed without thinking (Appendix~\ref{app:umr-more}). $^\S$Ten gold sentences as in-context examples. ``(50)'': training sentences read in batches. ``n.c.'': not computed; these runs stop before the document wave. Red dashes are pending experiments (\exper{E1}); ``--'' marks a cell not planned; further baselines and $K_1$/$K_2$ on H are pending (\exper{E2}, \exper{E13}).}
-\label{tab:main}
-\end{table*}
-
-\subsection{Orchestration versus generating the annotation}
-\label{sec:res-main}
-Table~\ref{tab:main} gives the \umr results. Asked for a whole graph, Sonnet 5.5 reaches 29--33 \F; inside the procedure it starts at 45.3 \F on T1 and adds the document level (Comp.\ 44.0 vs.\ 27.7). For a 9B model, single calls yield no scorable graph on any of 24 documents and a detailed single call reaches 4.9 \F on H, while inside the procedure it reaches 17.6, ahead on all 21 documents where both were run. A stronger direct baseline changes the picture for closed decisions. Given the concept inventory and ten gold sentences, Haiku scores 42.0 \F on H, above every closed procedure without routing and level with the best one with routing (42.6); in English it scores 46.4 against 30.1 (Table~\ref{tab:batch}). Where the output is mostly graph structure, closed decisions alone do not beat a capable generator given a few examples (\S\ref{sec:analysis}); a generic tool-using agent is pending \exper{E2}.
-
-\paragraph{Who answers the decisions.}
-\label{sec:res-scale}
-Very different models can serve the same procedure (Table~\ref{tab:answerer}, appendix), but $K_0$, built with Jev (39.5), loses 8.7--13.9 \F with the other decision models, partly through its thresholds (\S\ref{sec:res-calib}).
-
-\subsection{Learning from a handful of gold annotations}
-\label{sec:res-few}
-\paragraph{\umr, one document per round.}
-In fragment mode, with Sonnet parsing and Opus reflecting, one training document (51 sentences) raises T1 from 45.3 to 50.8 \F and a second raises it to 52.6; temporal relations improve most (29.5 $\rightarrow$ 43.6), and a third and fourth document leave test scores flat. First parses of new documents agree (Appendix~\ref{app:traj}). DeepSeek gains 5.2 \F on T2 reflecting on itself; Qwen3.5-9B does not improve (\S\ref{sec:analysis}). In closed mode, two rounds of unmeasured reflection raise the Jev procedure on T1 (36.8 $\rightarrow$ 40.2) and T2 (34.5 $\rightarrow$ 38.9; 0003 was used for seed tuning). Measured rounds on four more documents (Table~\ref{tab:rounds}, appendix) give 39.5 ($K_0$), 40.9 ($K_3$) and 40.1 ($K_4$) on H, while the training documents gain an order of magnitude more; intermediate values await source verification \exper{E13}.
-
-\paragraph{Five sentences per round.}
-Table~\ref{tab:batch} summarizes the batch runs. Twelve rounds cost \$0.53--4.27 in reflector calls and at most \$0.74 in decisions. On PARSEME, development gains carried over to the test sets. Reflection also adapts a procedure to a new language: the Chinese \umr procedure gains 4.1 \F on English, learning conventions such as contracted negation, clitic pronouns, plural nouns and person names. On Chinese \umr, twelve rounds left H unchanged (\S\ref{sec:analysis}). Of 190 proposed edits, 83 were kept: 62 of 146 rule edits, 9 of 17 threshold changes, 6 of 11 option changes and 6 of 16 rewordings. On PARSEME, 26 of the 37 kept edits change candidate rules, such as a new candidate kind or an exception list (Appendix~\ref{app:edits}).
-
 \begin{table}[t]
 \centering\small
 \setlength{\tabcolsep}{3.2pt}
-\begin{tabular}{@{}lcrccr@{}}
-\toprule
-Run & kept & dev $\Delta$ & $\Pi_0$ & $\Pi_{R}$ & \$ \\
-\midrule
-PARSEME zh & 20/34 & +7.6 & 52.4 & 57.8 & 0.53 \\
-PARSEME en & 17/39 & +2.9 & 44.3 & 46.3 & 0.69 \\
-\umr zh, $J_0$$^\ast$ & 18/32 & +7.3 & 34.2 & 35.7 & 2.27 \\
-\umr zh, $\Pi_0$ & 15/42 & +0.6 & 38.5 & 38.2 & 4.27 \\
-\umr en, zh $\Pi_0$ & 13/43 & +7.5 & 26.0 & 30.1 & 3.41 \\
-\midrule
-\multicolumn{4}{@{}l}{\umr en: $\Pi_{12}$ + routing ($\tau{=}0.7$)} & 30.5 & \\
-\multicolumn{4}{@{}l}{\umr en: Haiku, 10 gold sentences} & 46.4 & \\
-\bottomrule
-\end{tabular}
-\caption{Measured reflection in 5-sentence batches ($R{=}12$ rounds): edits kept/tried, change in development score, test score of the seed and the last version (PARSEME: MWE-based F; \umr: \F on H and the English test set), reflector cost. $^\ast$Ten rounds, ten development sentences.}
-\label{tab:batch}
+\resizebox{\columnwidth}{!}{\input{tables/main}}
+\caption{Test F1. \umr: the shared task's \jm{} metric on 100 Chinese and 95 English sentences; PARSEME: MWE-based F1 on 100 sentences per language. $V_0$ is the seed written from the guideline, $V_{10}$ the procedure after ten rounds of reflection on five gold sentences each (50 sentences in all); ``best version'' is the best of $V_0..V_{10}$ on the test set and is shown only to describe the curves (Figure~\ref{fig:curves}). $^\dagger$Placeholder until the best shared-task submission is re-scored on our chunks. PARSEME shared-task systems are trained on the full training data and re-scored on our sentences: TRAVIS-multi (Chinese 1.2) and Milos (English 1.1). Cascade: uncertain Jev answers re-asked of Haiku 5.5, $\tau$ as in Table~\ref{tab:calib}. Red dashes: runs not finished within our budget (see Limitations); a version in parentheses is the last one a stopped chain reached.}
+\label{tab:main}
 \end{table}
 
-\subsection{Threshold adaptation and routing}
-\label{sec:res-calib}
-\paragraph{Thresholds do not transfer; retuning is cheap.}
-Answered by the OpenAI Decisions API, $K_0$ scores 25.6 \F on H. Coordinate descent on four gold documents changes two of its ten thresholds and raises \F on H, which tuning never saw, to 28.5 (Appendix~\ref{app:calib}). This is task-level threshold adaptation, not calibration of answer probabilities \exper{E4}.
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/curves.pdf}
+\caption{Test F1 of every frozen version $V_0,\dots,V_{10}$; round $r$ has read $5r$ gold sentences. Dotted: GPT-6.1-sol with the whole guideline; dashed: best shared-task system (\umr: placeholder).}
+\label{fig:curves}
+\end{figure*}
 
-\paragraph{Routing.}
-In a 20-sentence pilot, routing questions with confidence below $\tau=0.7$ from Jev to Sonnet (Table~\ref{tab:routing}) recovers 75\% of the \F that Sonnet gains by answering everything, at 26\% of its cost. On H, routing $K_4$'s uncertain questions to the cheaper Haiku adds 2.5 \F at $\tau=0.7$ but only 1.5 at $\tau=0.9$, where more questions are routed: Haiku is better than Jev on Jev's most uncertain questions, not on all of them. Jev's confidence predicts agreement with Sonnet (Appendix~\ref{app:umr-more}), though agreement is not accuracy. The full curve over $\tau$ and gold-answered routing are pending \exper{E5}.
+Table~\ref{tab:main} gives the headline numbers and Figure~\ref{fig:curves} the test score of every version along the way. Appendix Table~\ref{tab:all} lists every number.
+
+\paragraph{The guideline as steps beats the guideline in context.}
+With no gold data at all, the seed procedures already compete with a frontier model that reads the whole guideline. On Chinese \umr, every closed seed (Jev 33.9, Microsoft 35.0, OpenAI 32.1) is 8--11 points above GPT-6.1-sol (23.9), although each decision is taken by a model that cannot write text; on English \umr the seeds are within 1.5 points of it (29.0--29.8 against 30.2), the small LLMs as fragment deciders on par (Haiku 28.8). The one \umr seed far below the baseline, Haiku on Chinese (20.9), fails in a way that the trace shows at once: it translated every Chinese concept into English (\zh{计划} $\to$ \texttt{plan-01}), which no guideline sentence forbids explicitly (event concepts 30.0 F in the judge, Table~\ref{tab:judge-umr}). On PARSEME, the fragment seeds start well above the frontier baseline in Chinese (GPT-6-luna 62.5, Haiku 59.5, against 50.0), while the closed seeds start low (22.5--37.8), for a reason we discuss below; in English every seed is below the frontier baseline (at most 62.3 against 75.6).
+
+\paragraph{Fifty gold sentences of reflection.}
+Reflection improves twelve of the fourteen chains that finished. On Chinese \umr, Haiku climbs from 20.9 to 33.2 (best 33.6), the first round alone adding 6.9 points by writing the missing convention (``for Chinese the concept is the source word itself, with a sense number''), and Jev from 33.9 to 37.6, the best \umr procedure without a cascade, 13.7 points above the frontier baseline. On English \umr the gains are smaller: Haiku 28.8 $\to$ 32.6, Jev 29.8 $\to$ 31.8, Microsoft 29.0 $\to$ 31.0, all above the baseline at $V_{10}$. On PARSEME, the measured closed chains gain most: Jev rises from 37.8 to 63.4 in Chinese and from 22.5 to 53.7 in English, Microsoft from 36.7 to 46.0 and from 25.9 to 43.5, and OpenAI Decisions, in the four English rounds it completed, from 38.0 to 41.9. The fragment chains on PARSEME, whose edits are not measured, move less predictably: GPT-6-luna rises in Chinese from 62.5 to 72.5 (best 74.1 at $V_6$), the best Chinese PARSEME result and 22.5 points above the frontier baseline, but in English it stays between 55.3 and 62.3 and ends at 58.4; Haiku reaches 62.9 in Chinese at $V_3$ and drifts back to 53.2 by $V_{10}$ (\S\ref{sec:disc-rsi}).
+
+\paragraph{Against the state of the art.}
+On English PARSEME, every procedure after reflection is above the best system of the 1.1 shared task re-scored on the same sentences (Milos, 40.5): Jev at 53.7, Haiku at 58.2, GPT-6-luna at 58.4, from 50 annotated sentences against the full training data. The English 1.1 systems predate pretrained language models, however, and the frontier model given the guideline is better still (75.6): in English, which these models know best, the guideline in context works, and decomposition with small deciders does not catch up within ten rounds. On Chinese PARSEME the 1.2 systems, trained on the full data with pretrained encoders, remain ahead (TRAVIS-multi 81.1 against GPT-6-luna's 72.5), although our best procedure is on par with the third open-track system (MTLB-STRUCT, 73.1) and above the best closed-track one (ERMI, 62.8). On \umr, our best procedures are 12--18 points below the placeholder for the best shared-task system.
+
+%---------------------------------------------------------------------
+\subsection{Where fragment and closed decisions differ}
+\label{sec:case}
 
 \begin{table}[t]
 \centering\small
-\setlength{\tabcolsep}{3.5pt}
-\begin{tabular}{@{}lccc@{}}
-\toprule
-Answerer & \F & LLM calls & Cost \\
-\midrule
-\multicolumn{4}{@{}l}{\emph{$J_2$ on 0010+0012 (20 sentences)}} \\
-Jev only & 39.1 & 0 & $<$\$0.1 \\
-Jev; $c<0.7$ to Sonnet & 42.4 & 504 & $\approx$\$9 \\
-Sonnet only & 43.5 & 1,292 & $\approx$\$34 \\
-\midrule
-\multicolumn{4}{@{}l}{\emph{$K_4$ on H (138 sentences)}} \\
-Jev only & 40.1 & 0 & \$0.75 \\
-Jev; $c<0.7$ to Haiku & 42.6 & 2,554 & +\$1.18 \\
-Jev; $c<0.9$ to Haiku & 41.6 & 2,988 & +\$1.47 \\
-Haiku, direct generation & 42.0 & 138 & \$0.19 \\
-\bottomrule
-\end{tabular}
-\caption{Routing uncertain closed decisions. Within a block, questions and rules are the same in every row; only the answerer of uncertain questions changes. Pilot: public API prices; H: billed costs, routing cost added to Jev's.}
-\label{tab:routing}
+\setlength{\tabcolsep}{2.4pt}
+\resizebox{\columnwidth}{!}{\input{tables/judge_umr}}
+\caption{The fine-grained \umr judge (F1 per check, \%) for fragment decisions by Haiku and closed decisions by Jev, seed and $V_{10}$. Selected checks; all 25 are in the released results.}
+\label{tab:judge-umr}
 \end{table}
+
+Because every unit of an annotation is attributed to the step that made it, the two modes can be compared check by check (Table~\ref{tab:judge-umr}). On \umr the closed procedure wins on what code controls: \emph{granularity} (which words a node covers; Chinese 92.9 against 85.8), \emph{refer} (person and number of pronouns, filled from closed-class tables; 49.0 against 23.2) and temporal relations. The fragment procedure wins on what needs open-ended judgment: the arguments of events (Chinese core arguments 45.6 against 35.7), reentrancies (24.4 against 20.4) and coreference chains (16.4 against 12.7). \jm{} maps nodes through their token alignment, so granularity errors cost twice, and Jev comes out ahead in Chinese (37.6 against 33.2).
+
+In English the order flips (Haiku 32.6, Jev 31.8), and the judge says why: event concepts (72.5 against 55.6) and senses (71.9 against 60.9). The trace shows that much of the difference is not in a decision at all. Jev gets 212 English event concepts wrong against Haiku's 136, and 51 of Jev's are inflected forms (\textit{stolen}, \textit{thought}, \textit{fallen}, \textit{trie}) that the seed's rule-based lemmatizer failed to reduce, against 20 for Haiku, which lemmatizes as it writes; in Chinese, without inflection, both have 107 and almost none is of this kind. A decision model chooses among the options that code gives it, so the closed mode is exactly as good as its enumerator: when the right concept is not an option, no probability can rescue it. Such an error is cheap to fix once found (an irregular-verb table), and it is found by reading one column of the judge's output.
+
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{2.6pt}
+\resizebox{\columnwidth}{!}{\input{tables/judge_parseme}}
+\caption{PARSEME error kinds on the test set (counts of gold or predicted expressions): correct; same tokens with the wrong category; overlapping tokens; gold missed because no rule proposed its tokens, or because a proposed candidate was rejected; spurious predictions. F is MWE-based, category-blind as in the official script.}
+\label{tab:judge-parseme}
+\end{table}
+
+On PARSEME the PARSEME judge (Table~\ref{tab:judge-parseme}) explains why the closed seeds start so low: they predict 121--175 expressions for 57--59 gold, of which 78--123 are spurious. Every closed question is a test from the guideline's decision trees, answered by a model that has never seen the scheme's sense of ``idiomatic'' or ``light''; at the seed's threshold of 0.5, far too many candidates pass. Reflection is where the closed procedure learns that sense: Jev's spurious predictions fall from 80 to 9 in Chinese and from 112 to 19 in English, through edits such as ``\zht{有} is not a light verb'', ``no VID for single-character object nouns'' or ``drop IAV on a verb that already has a VPC'', each measured on the training batches before it was kept. What the closed procedure cannot fix this way are expressions no rule proposes (``missed, no candidate'': 11 in Chinese, 16 in English, against 3--7 for the fragment procedures, which may return expressions outside the candidate list).
+
+%---------------------------------------------------------------------
+\subsection{Calibration, cascade and transfer}
+\label{sec:res-calib}
+
+\begin{table*}[t]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\input{tables/calib}
+\caption{Closed procedures with their thresholds as written (raw) and calibrated on the 50 training sentences (cal.); Jev's $V_{10}$ answered by Microsoft-Decision-1 (on \umr not calibrated, for budget); and Jev with the cascade to Haiku 5.5, at the $\tau$ selected on the training sentences (\umr: 0.8) or, where no $\tau$ helped there (PARSEME), at $\tau=0.7$.}
+\label{tab:calib}
+\end{table*}
+
+Table~\ref{tab:calib} shows the two closed-mode adjustments of \S\ref{sec:calibration}. \textbf{Threshold calibration} helps six of the eight seeds, a little on \umr (Jev 33.9 $\to$ 34.2 and 29.8 $\to$ 30.2, Microsoft Chinese 35.0 $\to$ 35.8) and more on PARSEME (Jev English 22.5 $\to$ 27.1, Chinese 37.8 $\to$ 39.2, Microsoft English 25.9 $\to$ 29.9), but not the reflected procedures (\umr within $\pm0.2$; PARSEME Jev 63.4 $\to$ 61.4 and 53.7 $\to$ 49.5): after ten rounds of measured reflection, the thresholds have already been tuned implicitly by the edits that were kept (a ``lower idiom threshold'' edit, for example), and the remaining training gain of calibration (Jev Chinese 88.2 $\to$ 89.6) does not carry over to the test set (63.4 $\to$ 61.4). With 50 sentences, thresholds fitted on the training data overfit quickly. \textbf{The cascade} routes questions Jev answers with confidence below $\tau$ to Haiku. On PARSEME it hurts: on the training sentences no $\tau$ improved Jev's $V_{10}$ (English 76.7 without the cascade, 64.6--73.5 with it; Chinese 88.2 against 77.3--82.2), and at $\tau=0.7$ the test score falls too (English 53.7 $\to$ 44.1, Chinese 63.4 $\to$ 53.4), while on the seeds it helps a little (37.8 $\to$ 39.8, 22.5 $\to$ 25.8). Once reflection has tuned PARSEME's rules to Jev's answers, replacing the hard ones with another model's breaks that fit. On \umr, whose closed questions are more open (which concept, which role), the training sentences select $\tau=0.8$ in both languages (Chinese 37.5 $\to$ 37.8, English 38.5 $\to$ 38.8), and the cascade adds a little on the test set too: Chinese 37.6 $\to$ 38.1, the best \umr result, and English 31.8 $\to$ 32.6, level with Haiku's fragment procedure, for \$0.18--0.67 per hundred sentences, still a fraction of Haiku's own cost. On the seeds it adds 1.6 points in both languages (33.9 $\to$ 35.5, 29.8 $\to$ 31.4). \textbf{Transfer.} The procedure Jev's chain learned works with another decision model, and in three of four cases better than the procedure that model's own chain learned. Answered by Microsoft-Decision-1, Jev's $V_{10}$ scores 57.1 on Chinese PARSEME against 46.0 for Microsoft's own $V_{10}$, and 62.0, close to Jev's 63.4, once its thresholds are calibrated for Microsoft, which is the situation calibration is meant for; 36.6 against 35.8 on Chinese \umr; 44.2 against 43.5 on English PARSEME; only on English \umr is it lower (30.4 against 31.0). What reflection writes is mostly about the scheme, not about the model, and Jev's chain learned more of it than Microsoft's.
+
+%---------------------------------------------------------------------
+\subsection{What reflection does}
+\label{sec:res-rsi}
+
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{2.6pt}
+\resizebox{\columnwidth}{!}{\input{tables/rsi}}
+\caption{Ten rounds of reflection: problems the reflector listed, edits tried (with closed-mode retries), edits kept, compressions, and the size of the editable procedure (characters; closed mode includes code).}
+\label{tab:rsi}
+\end{table}
+
+Table~\ref{tab:rsi} summarizes the ten rounds. The reflector lists 8--11 problems per \umr batch and 2--4 per PARSEME batch, and proposes about one edit per problem. In closed mode, measurement keeps about half of the edits (54 of 109 for Jev on Chinese \umr; 13--16 of 36--46 on PARSEME); a typical rejected edit changes nothing measurable (``money is quantity'': no change on the batch or the earlier batches), lowers the earlier batches, or is invalid (an edit that broke a YAML file is caught by the loader and never measured). In fragment mode every edit that applies is kept, so the procedure grows faster (Chinese \umr: 36.8k $\to$ 50.8k characters despite 28 compressions) than in closed mode (70.5k $\to$ 73.7k, mostly code), where edits are short and replace text more often than they add it.
+
+The kept edits read like an annotation manual's errata, and they are where the procedure's improvements come from. In Chinese \umr, Jev's kept edits concern discourse connectives (``limit \texttt{and-but}'', ``speech content is not discourse''), the abstract predicates of non-verbal clauses (``\texttt{exist-91} for \zh{X中有Y}'', ``\texttt{have-place-91} only without a verb''), aspect (``add inceptive aspect'') and the person/number of nouns; every one is a readable change to a named step, which an annotator can check and keep or revert. On the training batches themselves, the closed \umr procedures improve steadily: Jev's score on all earlier batches rises from 31.6 after round 1 to 38.9 after round 10, of which 3.7 points carry over to the unseen test documents.
