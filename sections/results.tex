@@ -2,132 +2,86 @@
 \section{Results}
 \label{sec:results}
 
-%---------------------------------------------------------------------
 \begin{table*}[t]
 \centering\small
-\setlength{\tabcolsep}{4.5pt}
-\begin{tabular}{@{}lllcccc@{}}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}llrcccc@{}}
 \toprule
-System & Decisions by & Refl. docs (sent.) & T1: 0004--05 & T2: 0005--07 & H: 0015--24 \\
- & & & \F / Comp. & \F / Comp. & \F / Comp. \\
+& & \multicolumn{1}{c}{training} & \multicolumn{2}{c}{Chinese (1.2)} & \multicolumn{2}{c}{English (1.1)} \\
+\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+System & & \multicolumn{1}{c}{sentences} & F & unseen F & F & unseen F \\
 \midrule
-\multicolumn{6}{@{}l}{\emph{Baselines: one call per sentence}} \\
-Single call & Sonnet 5.5 & 0 & 32.7 / 27.7 & 29.4 / 24.9 & \tbd \\
-Single call & Qwen3.5-9B & 0 & -- & -- & \phantom{0}0.0 / \phantom{0}0.0 \\
-Detailed single call & Qwen3.5-9B & 0 & -- & -- & \phantom{0}4.9 / \phantom{0}5.3 \\
-Full guideline + gold examples \exper{E2} & Sonnet 5.5 & 4 (201) & \tbd & \tbd & \tbd \\
-Generic tool-using agent \exper{E2} & Sonnet 5.5 & 0 & \tbd & \tbd & \tbd \\
+\multicolumn{7}{@{}l}{\emph{Shared-task systems, trained on the full training data (re-scored)}} \\
+\quad best open track & & all & 71.9 & 64.2 & 33.3 & 23.7 \\
+\quad best closed track & & all & 60.9 & 45.7 & 32.9 & 17.6 \\
 \midrule
-\multicolumn{6}{@{}l}{\emph{Fragment-mode orchestration (unmeasured reflection by Opus 5.5)}} \\
-$R_0$ (seed) & Sonnet 5.5 & 0 & 45.3 / 44.0 & \tbd & \tbd \\
-$R_{13}$ & Sonnet 5.5 & 1 (51) & 50.8 / 49.4 & -- & -- \\
-$R_{23}$ & Sonnet 5.5 & 2 (111) & \textbf{52.6} / \textbf{51.2} & -- & -- \\
-$R_{32}$ & Sonnet 5.5 & 3 (142) & 52.6 / 51.1 & 55.2 / 52.1 & \tbd \\
-$R_{42}$ & Sonnet 5.5 & 4 (201) & n/a & \textbf{55.6} / \textbf{52.2} & \tbd \\
-$R_0$ (seed) & DeepSeek V4.1$^\ddagger$ & 0 & -- & 30.8 / 29.0 & \tbd \\
-$R_{42}$ (self-reflection) & DeepSeek V4.1$^\ddagger$ & 2 (110) & -- & 36.0 / 34.0 & \tbd \\
-$R_0$ (seed) & Qwen3.5-9B & 0 & -- & -- & 17.6 / 18.5 \\
+\multicolumn{7}{@{}l}{\emph{Direct generation}} \\
+\quad Claude Haiku 5.5, 10 gold examples & & 10 & 39.5 & 32.6 & 41.1 & 34.8 \\
 \midrule
-\multicolumn{6}{@{}l}{\emph{Closed-mode orchestration}} \\
-$J_0$ (seed) & Jev & 0$^\dagger$ & 36.8 / 37.1 & 34.5 / 33.8 & \tbd \\
-$J_2 = K_0$ (unmeasured reflection) & Jev & 2 (111) & 40.2 / 41.3 & 38.9 / 38.0 & 39.5 / 38.4 \\
-$K_2$ (intermediate, source audit \exper{E13}) & Jev & 4 (131) & -- & -- & \tbd / \tbd \\
-$K_4$ (last reported round) & Jev & 6 (168) & -- & -- & 40.1 / 39.2 \\
+\multicolumn{7}{@{}l}{\emph{Decision orchestration (Jev decisions)}} \\
+\quad seed procedure & $\Pi_0$ & 0 & 52.4 & 36.5 & 44.3 & 37.8 \\
+\quad after 6 rounds & $\Pi_6$ & 30 & 56.9 & 43.1 & \textbf{46.3} & \textbf{38.8} \\
+\quad after 12 rounds & $\Pi_{12}$ & 60 & 57.8 & 44.3 & \textbf{46.3} & \textbf{38.8} \\
+\quad $\Pi_{12}$ + Haiku cascade ($\tau{=}0.7$) & & 60 & \textbf{58.5} & \textbf{45.7} & 44.1 & 37.4 \\
 \bottomrule
 \end{tabular}
-\caption{Main results on Chinese \umr (AnCast++, macro average over documents; \F = sentence-graph F, Comp.\ = comprehensive score including the document level). ``Refl. docs'' counts automatic-reflection documents only, not all gold exposure. Closed seeds and their descendants additionally inherit manual tuning on 0001--0003 (see \S\ref{sec:setup}); round 4 also selects using development scores. ``n/a'': 0004 was a training document. $^\dagger$$J_0$'s rules were tuned by hand on 0001--0003. $^\ddagger$Parsed without thinking (\S\ref{sec:res-scale}). Red dashes are pending experiments (\exper{E1}, \exper{E2}); ``--'' marks a cell not planned.}
-\label{tab:main}
+\caption{PARSEME test sets: MWE-based F1 and F1 on VMWEs unseen in the training file, all computed with the official script from the systems' released predictions. Best open track: TRAVIS-mono (Chinese), Milos (English); best closed track: ERMI, TRAPACC. ``Training sentences'' are the annotated sentences a system used; the reflector read five per round.}
+\label{tab:parseme}
 \end{table*}
-%---------------------------------------------------------------------
 
-\subsection{Orchestration versus generating the annotation}
-\label{sec:res-main}
-Table~\ref{tab:main} gives the main results. Asked for a whole graph, Sonnet 5.5 reaches 29--33 \F and writes no document level. The hand-written procedure, with the same model making only local decisions, starts at 45.3 \F on T1 and adds the document level (Comp.\ 44.0 vs.\ 27.7). For a 9B model, orchestration makes the difference between nothing and something. Single calls yield no scorable graph on any of 24 documents, and a detailed single call reaches 4.9 \F on H. Inside the procedure the same model reaches 17.6 \F, ahead of the detailed call on all 21 documents where both were run. Deterministic assembly reduces structural errors but does not guarantee correct or universally parseable graphs: the format-check result must be recomputed against the current gold \exper{E13}. Whether a generic agent with the same guideline and tools closes the gap, and at what cost, is pending \exper{E2}.
+\paragraph{Learned procedures beat direct generation on PARSEME.}
+Table~\ref{tab:parseme} gives the PARSEME results. The seed procedures, written from the guidelines before any training sentence was read, already exceed direct generation with ten gold examples: 52.4 vs.\ 39.5 F in Chinese and 44.3 vs.\ 41.1 in English. Reflection adds 5.5 F in Chinese (7.8 on unseen expressions) and 2.0 in English. In English, the learned procedure scores 13 points above the best system of the 2018 shared task, which was trained on all 3,471 training sentences. Those systems predate today's pretrained encoders, so the comparison shows how little data the procedure needs rather than a new state of the art. In Chinese, the open-track systems trained on 35,326 sentences on top of multilingual pretrained encoders remain 14 points ahead, and the procedure is 3 points below the best closed-track system. Precision is the weak side of both procedures: the final Chinese procedure finds 71\% of the gold VMWEs, but only 49\% of its predictions are correct.
 
-\subsection{Who answers the decisions}
-\label{sec:res-scale}
-Because the decision interface is fixed, very different models can serve the same procedure (Table~\ref{tab:answerer}). In fragment mode, Qwen3.8-27B reaches 42.4 \F on 0001--0004, 94\% of Sonnet's 45.1. DeepSeek V4.1 Flash depends on its reasoning: on 0002 it scores 49.1 \F with thinking and 35.9 without (Sonnet: 50.6), so its no-thinking test runs in Table~\ref{tab:main} understate it. In closed mode the model never writes structure, and a 9B decision service reaches 30.8 \F on H, compared with 17.6 for the fragment-mode 9B configuration. This comparison changes both the answerer and the procedure version, so it does not isolate the effect of the closed interface. A procedure tuned for one answerer does not transfer unchanged, though: $K_0$, built with Jev (39.5), loses 8.7--13.9 \F with the other two decision models. Part of the gap is calibration (\S\ref{sec:res-calib}).
+\paragraph{Routing helps where Jev is unsure and the cheap model is right.}
+In Chinese, the cascade re-asked 361 questions (\$0.09) and gained 0.7 F (1.4 on unseen expressions). In English it re-asked 720 questions and lost 2.2 F: Haiku accepted 123 more candidates as VMWEs, of which 13 were correct. Whether to route is an empirical question per task, which a development set can answer before deployment.
 
 \begin{table}[t]
 \centering\small
-\setlength{\tabcolsep}{3.5pt}
-\begin{tabular}{@{}llcc@{}}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lcc@{}}
 \toprule
-Answerer & Mode & \F & Comp. \\
+System & zh & en \\
 \midrule
-Qwen3.5-9B & fragment, $R_0$ & 17.6 & 18.5 \\
-Qwen3.8-27B & fragment, $R_0$ & \tbd & \tbd \\
-Sonnet 5.5 & fragment, $R_0$ & \tbd & \tbd \\
+Haiku 5.5, 10 gold examples & 42.0 & \textbf{46.4} \\
 \midrule
-Microsoft-Decision-1 (9B) & closed, $K_0$ & 30.8 & 31.6 \\
-OpenAI Decisions & closed, $K_0$ & 25.6 & 27.0 \\
-\quad + calibrated (\S\ref{sec:res-calib}) & closed, $K_0^{\theta}$ & 28.5 & 29.6 \\
-Jev & closed, $K_0$ & 39.5 & 38.4 \\
-Sonnet 5.5 & closed, $K_0$ & \tbd & \tbd \\
+\multicolumn{3}{@{}l}{\emph{Chinese procedures of earlier work}} \\
+\quad J2 (seed) & 39.4 & -- \\
+\quad K4 (J2 + 4 document rounds) & 40.1 & -- \\
+\quad K4 + Haiku cascade, $\tau{=}0.7$ & \textbf{42.6} & -- \\
+\quad K4 + Haiku cascade, $\tau{=}0.9$ & 41.6 & -- \\
+\midrule
+\multicolumn{3}{@{}l}{\emph{Revised procedure (questions in data files)}} \\
+\quad as released (27 aspect values) & 33.3 & -- \\
+\quad $\Pi_0$: + aspect / polarity conventions & 38.5 & 26.0 \\
+\quad $\Pi_6$ & 38.2 & 29.7 \\
+\quad $\Pi_{12}$ & 38.2 & 30.1 \\
+\quad $\Pi_{12}$ + Haiku cascade, $\tau{=}0.7$ & -- & 30.5 \\
 \bottomrule
 \end{tabular}
-\caption{One procedure, different answerers, on H. Pending: \exper{E1}, \exper{E5}.}
-\label{tab:answerer}
+\caption{\umr test sets: AnCast++ sentence F, macro-averaged over documents (Chinese: 8 documents, 138 sentences; English: 6, 143). The English procedure is the Chinese $\Pi_0$ reflected on English batches.}
+\label{tab:umr}
 \end{table}
 
-\subsection{Learning from a handful of documents}
-\label{sec:res-few}
-
-\paragraph{Fragment mode.}
-With Sonnet parsing and Opus reflecting, one training document (51 sentences) raises T1 from 45.3 to 50.8 \F, and a second raises it to 52.6 (Table~\ref{tab:main}). Temporal relations improve most (29.5 $\rightarrow$ 43.6). A third and fourth document leave test scores flat. The first parse of each new document, with a version that never saw it, tells the same story: 0002 goes from 50.6 (seed) to 58.9 ($R_{13}$), and 0003 from 49.7 to 57.5 ($R_{23}$; trajectories in Appendix~\ref{app:traj}). Weaker models can reflect on themselves. DeepSeek gains 5.2 \F on T2 from two documents, and Qwen3.8-27B gains 11.1 \F on its training document in one round. The reported Qwen3.5-9B joint parser--reflector configuration fails to improve (\S\ref{sec:analysis}).
-
-\paragraph{Closed mode.}
-Two rounds of unmeasured reflection raise the Jev procedure on T1 (36.8 $\rightarrow$ 40.2) and T2 (34.5 $\rightarrow$ 38.9). Document 0003 was used for manual seed tuning and is not an untouched test document; any wider sequential summary must exclude or disclose that exposure. Measured reflection then continues on new documents (Table~\ref{tab:rounds}), accepting 6--8 of 12 proposals per round. On H, the verified snapshot gives 39.5 \F for $K_0$, 40.9 for $K_3$ and 40.1 for the last reported round $K_4$; intermediate $K_1$ and $K_2$ values await source verification \exper{E13}, while the training documents gain an order of magnitude more (+4.1 to +16.8; see \S\ref{sec:analysis}). Learning curves over several document orders are pending \exper{E3}.
+\paragraph{On UMR, closed decisions are not enough.}
+Table~\ref{tab:umr} gives the \umr results. The best Chinese procedure with routing reaches 42.6 F against 42.0 for direct generation; in English, direct generation is 16 points ahead. Reflection still helps where the seed is far from the data: the procedure written for Chinese gains 4.1 F on English in twelve rounds, learning English conventions such as contracted negation, clitic pronouns, plural nouns and names of people written as \texttt{person}. In Chinese, the same twelve rounds raised the batches by several points but left the test score unchanged. Routing uncertain decisions to Haiku adds 2.5 F to K4 at $\tau{=}0.7$, but only 1.5 at $\tau{=}0.9$: Haiku is better than Jev on Jev's most uncertain questions, not on all of them. Parsing the Chinese test set costs \$0.40--0.82 in decisions, plus \$1.2--1.5 for the cascade; direct generation costs \$0.19.
 
 \begin{table}[t]
 \centering\small
 \setlength{\tabcolsep}{3pt}
-\begin{tabular}{@{}lcccc@{}}
+\begin{tabular}{@{}lrrrrr@{}}
 \toprule
-Round (doc, sent.) & acc./tried & train \F & reg.\ $\Delta$\F & H \F \\
+Run & tried & kept & dev $\Delta$ & test $\Delta$ & \$ refl. \\
 \midrule
-$K_0$ & & & & 39.5 \\
-$K_1$ (0008, 10) & 8/12 & 40.0$\rightarrow$54.1 & $+$0.5 & \tbd \\
-$K_2$ (0009, 10) & 7/12 & 43.4$\rightarrow$60.2 & $+$0.5 & \tbd \\
-$K_3$ (0010, 12) & 8/12 & 41.4$\rightarrow$45.9 & $+$0.4 & 40.9 \\
-$K_4$ (0011, 25)$^\ast$ & 6/12 & 37.5$\rightarrow$41.6 & $+$3.2 & 40.1 \\
+PARSEME zh & 34 & 20 & +7.6 & +5.5 & 0.53 \\
+PARSEME en & 39 & 17 & +2.9 & +2.0 & 0.69 \\
+UMR zh (from $\Pi_0$) & 42 & 15 & +0.6 & $-$0.3 & 4.27 \\
+UMR zh (from J0) & 32 & 18 & +7.3 & +1.6 & 2.27 \\
+UMR en & 43 & 13 & +7.5 & +4.1 & 3.41 \\
 \bottomrule
 \end{tabular}
-\caption{Reported historical trial summaries for measured reflection with Jev; source-log verification is pending \exper{E13}. ``reg.\ $\Delta$\F'': mean change on the regression documents. $^\ast$From round 4 on, problems are diagnosed on the training and regression documents together, and three development documents are measured in every trial (mean $+$0.8 \F on them).}
+\caption{Twelve rounds of reflection (ten for \umr zh from J0, an earlier hand-written seed whose development set had ten sentences): edits tried and kept, the change on the development and test sets, and the reflector's cost. Decisions during reflection cost \$0.01--0.74 per run.}
 \label{tab:rounds}
 \end{table}
 
-\subsection{Threshold adaptation and routing}
-\label{sec:res-calib}
-
-\paragraph{Thresholds do not transfer; recalibration is cheap.}
-$K_0$'s thresholds were tuned with Jev. Answered by the OpenAI Decisions API, it scores 25.6 \F on H. Coordinate descent on four gold documents (0001--0003, 0006) finds improvements for two of the ten thresholds in the tested grid: when a span counts as a single-verb clause (0.6 $\rightarrow$ 0.7) and the floors for attaching an out-of-clause argument (0.4/0.6 $\rightarrow$ 0.3/0.5). The calibration objective rises from 29.0 to 30.8, and on H, which calibration never saw, \F rises from 25.6 to 28.5 (Comp.\ 27.0 $\rightarrow$ 29.6). No value of the other eight improves the objective by more than 0.05 (Appendix~\ref{app:calib}). This grid search found improvements at two thresholds. It is task-level threshold adaptation, not calibration of answer probabilities; the search does not prove that the other thresholds are optimal or causally irrelevant. Calibrating Microsoft-Decision-1, and calibrating from one or two documents, are pending \exper{E4}.
-
-\paragraph{Confidence predicts agreement.}
-On $J_2$'s questions for two unseen documents (0010, 0012), Jev and Sonnet agree on 95\% of the questions where Jev's confidence is $\geq$0.9 (53\% of questions), 79\% at 0.7--0.9 (26\%), and 57\% below 0.7 (21\%). Disagreement concentrates in \skill{sent\_type}'s routing question (78\%) and \skill{np\_phrase}'s modifier questions (67\%), where a wrong answer reshapes a subtree. Agreement with Sonnet is not accuracy against gold or calibrated confidence. Reliability against gold-derived answers is pending \exper{E4}.
-
-\paragraph{Routing.}
-Routing every question with confidence below $\tau=0.7$ from Jev to Sonnet (Table~\ref{tab:routing}) recovers 3.3 of the 4.4 \F that Sonnet gains by answering everything (75\%), with 39\% of its calls and 26\% of its cost. The curve over $\tau$, and a cold-start variant in which routed questions are answered from gold as a stand-in for an annotator, are pending \exper{E5}.
-
-\begin{table}[t]
-\centering\small
-\setlength{\tabcolsep}{3.5pt}
-\begin{tabular}{@{}lccc@{}}
-\toprule
-Answerer & \F & Sonnet calls & Cost \\
-\midrule
-Jev only & 39.1 & 0 & $<$\$0.1 \\
-Jev; $c<0.7$ to Sonnet & 42.4 & 504 & $\approx$\$9 \\
-Sonnet only & 43.5 & 1,292 & $\approx$\$34 \\
-\midrule
-other $\tau$, on H \exper{E5} & \tbd & \tbd & \tbd \\
-$c<\tau$ from gold \exper{E5} & \tbd & \tbd & \tbd \\
-\bottomrule
-\end{tabular}
-\caption{Routing uncertain closed decisions of $J_2$ on 0010+0012 (20 sentences). Questions and rules are the same in every row; only the answerer changes. Public API prices.}
-\label{tab:routing}
-\end{table}
-
-\subsection{A second benchmark}
-\label{sec:res-second}
-\todo{E9, to be run.} We will test whether the recipe transfers beyond \umr on verbal multiword expression identification in PARSEME 1.2 \citep{ramisch2020parseme}, whose guidelines are almost literally decision trees of linguistic tests, and with official evaluation of expressions unseen in training (Appendix~\ref{app:second}).
+\paragraph{Reflection is cheap and mostly edits rules.}
+Table~\ref{tab:rounds} summarizes the reflection runs. Twelve rounds cost \$0.53--4.27 in reflector calls; decisions during reflection cost at most \$0.74, because unchanged questions are answered from the cache. Of 190 proposed edits, 83 were kept: 62 of 146 rule edits, 9 of 17 threshold changes, 6 of 11 new or changed options and 6 of 16 rewordings. The reflector mostly proposes rules. On PARSEME, 26 of the 37 kept edits change the candidate rules (a new candidate kind, a filter for literal particles, an exception list) and 11 change the decision code or its thresholds.

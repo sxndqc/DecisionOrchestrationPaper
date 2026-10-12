@@ -1,213 +1,73 @@
 %=====================================================================
-\section{Fine-grained judge}
-\label{app:judge}
-The judge works on the AnCast alignment of predicted and gold variables. It scores each of the following checks as an F-score over \emph{units}. A unit is one small comparison (a node, an attribute, an argument set, a relation) that is correct, partially correct, wrong, missing or extra.
-\textbf{(a) nodes}: event found, event concept, entity found, entity concept, granularity (is the node cut at the same words as gold);
-\textbf{(b)} event sense;
-\textbf{(c) attributes}: aspect, modal strength, polarity, refer-person/number, other attributes;
-\textbf{(d) arguments}: core arguments of events, core arguments of abstract predicates, peripheral arguments of events, peripheral arguments of entities;
-\textbf{(e) role labels}: core, peripheral;
-\textbf{(f) names}: name tokens, wiki;
-\textbf{(g)} reentrancy;
-\textbf{(h)} temporal; \textbf{(i)} modal; \textbf{(j)} coreference chains and subsets;
-\textbf{(k)} document format.
-For attribution, each unit is assigned to the node that produced its predicted side, or to ``no predicted node'' when only the gold side exists.
+\section{Examples of Kept Edits}
+\label{app:edits}
+Each edit is an exact find-and-replace in one file of the procedure, proposed by the reflector with a reason and kept because its measured effect met the criterion of \S\ref{sec:reflection}. Gains are F on the batch, the regression set and the development set.
 
-%=====================================================================
-\section{Training trajectories}
-\label{app:traj}
-\begin{table}[h]
-\centering\small
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}lccccc@{}}
-\toprule
-Doc & seed & iter 1 & iter 2 & iter 3 & after \\
-\midrule
-0001 & 40.3 & 40.3 & 59.6 & 66.9 & 70.9 \\
-0002 & 50.6 & 58.9 & 66.3 & 70.4 & 73.4 \\
-0003 & 49.7 & 57.5 & 69.5 & -- & -- \\
-0004 & 39.6 & 49.7 & 57.9 & -- & -- \\
-\bottomrule
-\end{tabular}
-\caption{Fragment mode (Sonnet 5.5 parsing, Opus 5.5 reflecting): sentence \F on each training document. Iteration $y$ parses with the version before round $y$, so iteration 1 uses only earlier documents. ``after'' parses with the document's final version.}
-\label{tab:traj}
-\end{table}
-
-\begin{table}[h]
-\centering\small
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}lcccc@{}}
-\toprule
-Skill & iter 1 & iter 2 & iter 3 & after \\
-\midrule
-\skill{predicate} & \tbd & \tbd & \tbd & \tbd \\
-\skill{np\_phrase} & \tbd & \tbd & \tbd & \tbd \\
-\skill{document} & \tbd & \tbd & \tbd & \tbd \\
-(no predicted node) & \tbd & \tbd & \tbd & \tbd \\
-\skill{sent\_type} & \tbd & \tbd & \tbd & \tbd \\
-\skill{special\_entity} & \tbd & \tbd & \tbd & \tbd \\
-\skill{discourse} & \tbd & \tbd & \tbd & \tbd \\
-\bottomrule
-\end{tabular}
-\caption{Credit lost per skill on training document 0001 over three rounds of fragment-mode reflection (sum of $1-\text{credit}$ over all judge units attributed to the skill). Cells are intentionally blank pending current-gold recomputation and scorer-version audit \exper{E13}; this table is a planned diagnostic, not a result.}
-\label{tab:lost}
-\end{table}
-
-%=====================================================================
-\section{Task-Level Threshold Adaptation}
-\label{app:calib}
-Table~\ref{tab:calib} lists the thresholds of the closed-mode procedure and the sweep for the OpenAI Decisions API. The objective is Eq.~\ref{eq:objective} on 0001--0003 and 0006. Thresholds were swept in the order listed, each on top of the values kept so far, and a value is kept if it improves the objective by more than 0.05.
-
-\begin{table}[h]
-\centering\small
-\setlength{\tabcolsep}{2.5pt}
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{@{}llll@{}}
-\toprule
-Threshold (skill) & Jev & tried & kept ($\Delta J$) \\
-\midrule
-comma span $\rightarrow$ discourse (\skill{sent\_type}) & .2 & .3 .4 .5 & .2 \\
-split noun phrase (\skill{sent\_type}) & .2 & .3 .4 .5 & .2 \\
-word is an event (\skill{sent\_type}) & .5 & .4 .6 .7 & .5 \\
-single-verb clause (\skill{sent\_type}) & .6 & .4 .5 .7 & \textbf{.7} (+1.55) \\
-conjunct cut, and/or (\skill{discourse}) & .4/.5 & +.1, +.2, +.3 & .4/.5 \\
-cut without comma (\skill{discourse}) & .5 & .6 .7 .8 & .5 \\
-outside argument, ARG0-1/other (\skill{predicate}) & .4/.6 & $\pm$.1, +.2 & \textbf{.3/.5} (+0.27) \\
-generic yes/no (shared) & .5 & .6 .7 .8 & .5 \\
-coreference kept (\skill{document}) & .4 & .3 .5 .6 & .4 \\
-modal source kept (\skill{document}) & .7 & .5 .6 .8 & .7 \\
-\bottomrule
-\end{tabular}}
-\caption{Calibration of $K_0$ for the OpenAI Decisions API. Objective 29.0 $\rightarrow$ 30.8 on the calibration documents; on H, \F 25.6 $\rightarrow$ 28.5. \todo{same table for Microsoft-Decision-1 (E4)}}
-\label{tab:calib}
-\end{table}
-
-%=====================================================================
-\section{Skills}
-\label{app:skills}
-
-\begin{table}[h]
-\centering\small
-\setlength{\tabcolsep}{3pt}
-\begin{tabular}{@{}llp{3.9cm}@{}}
-\toprule
-Node & Kind & Decides or does \\
-\midrule
-\skill{sent\_type} & decision & span type (5-way); routing \\
-\skill{discourse} & decision & relation; split points \\
-\skill{predicate} & decision & head, sense, roles, aspect, modality \\
-\skill{np\_phrase} & decision & head, its form, modifier roles \\
-\skill{special\_entity} & decision & entity kind, type, value \\
-\skill{document} & decision & time anchor, source, coreference \\
-\midrule
-\skill{antecedent} & rule & out-of-span participants \\
-\skill{coverage} & rule & re-dispatch uncovered tokens \\
-\skill{reentrancy} & rule & merge same-referent nodes \\
-output handler & rule & assemble, validate \\
-\bottomrule
-\end{tabular}
-\caption{Nodes of the \umr procedure. Each decision node has two interchangeable implementations (fragment and closed); rule nodes, registry and scorer are shared.}
-\label{tab:nodes}
-\end{table}
-
-\paragraph{A fragment-mode skill.}
-\texttt{predicate/skill.md} has sections on the head concept (event, abstract predicate, sense), the participants, participants outside the clause, aspect, modal strength and polarity, the output, worked examples, and, last, an \texttt{\#\# Input} section with the span, the numbered sentence and the outputs of the parent node. Because the input comes last, everything before it is cached across calls. Reflection edits these sections in place by anchored edits. The emit schema lists closed value sets for aspect (27 values), modal strength (6) and polarity, and open fields for the fragment, its open slots and its out-of-span participants. Over ten rounds of unmeasured reflection, the six decision skills grow from 41k to 156k characters of instructions.
-
-\paragraph{A closed-mode skill.}
-A closed skill is a Python generator:
-\begin{small}
+\paragraph{PARSEME English, round 6} (\texttt{candidates.py}; batch $+$14.3, regression $\pm$0, dev $+$1.9). \emph{Reason given:} ``\emph{V as NP} marks a role or function (\emph{acts as, serve as, work as}) and is not an IAV; removing it avoids false positives of this kind generally.''
+{\footnotesize
 \begin{verbatim}
-def run(sent, span, **_):
-    a = yield {"state": {...}, "questions": {
-        "type": {"type": "choice",
-                 "criteria": TYPES}}}
-    b = yield {...}   # may depend on a
-    return emit_from(a, b)  # rules
-\end{verbatim}
-\end{small}
-\noindent Each option in \texttt{TYPES} carries a description condensed from the guideline, for example what counts as a \emph{discourse} span in Chinese, with the constructions that do and do not qualify. The returned emit has the same schema as the fragment-mode skill, so the registry and rule nodes are unchanged. Table~\ref{tab:questions} lists the questions per skill.
+- ... not in PARTICLES | {"to"}
++ ... not in PARTICLES | {"to", "as"}
+\end{verbatim}}
 
+\paragraph{PARSEME Chinese, round 3} (\texttt{candidates.py}; batch $+$7.3, regression $\pm$0, dev $+$0.7). \emph{Reason given:} ``A causative \zht{讓}/\zht{使}/\zht{令}, or \zht{有}, followed by a verb or adjective is a clausal complement, not a light verb plus event noun.'' The light-verb candidate rule gains the condition \texttt{and not (h.form in \{\zht{讓}, \zh{让}, \zht{使}, \zht{令}, \zht{有}\} and t.upos != NOUN)}.
+
+\paragraph{UMR English, round 9} (\texttt{jevlib.py}; batch $+$6.1, regression $\pm$0, dev $+$1.1). \emph{Reason given:} ``Contracted pronouns such as \emph{he's}, \emph{you're} and \emph{they'll} are recognized as pronouns. They then get a person node with \texttt{:refer-person} and \texttt{:refer-number} instead of a literal concept like \texttt{he's}.''
+{\footnotesize
+\begin{verbatim}
++ elif lang == "en":
++   for s in ("'s","'ll","'d","'m","'re","'ve"):
++     if (t.endswith(s) and
++         t[:-len(s)] in PRONOUNS["en"]):
++       t = t[:-len(s)]
++       break
+\end{verbatim}}
+
+%=====================================================================
+\section{The PARSEME Seed Procedures}
+\label{app:seeds}
+\paragraph{Candidates.} Chinese: (1) a verb, auxiliary, adjective or noun token of two or more Han characters ending in a directional, resultative or co-verb complement from a fixed list (\zht{上, 下, 出, 起, 開, 完, 好, 掉, 住, 到, 為, 成, 在, 入, 至, 給}, \dots), read as stem + complement; (2) a four-character Han token; (3) a verb and a complement token attached to it (\texttt{mark}, \texttt{compound:vv}, \dots) within three tokens, or adjacent to it; (4) a light or causative verb from a list of 60 (\zht{進行, 提供, 作出, 受到, 帶來, 造成, 引起}, \dots) and its object. English: (1) a verb and its particle (\texttt{compound:prt}, or a particle word as \texttt{advmod} within three tokens); (2) a light verb from a list of 45 (\emph{make, take, give, have, do, pay, \dots}) and its object noun; (3) a verb and the preposition right after it; (4) \emph{make, let, get, break, come, go} with a bare complement.
+
+\paragraph{Questions.} One choice per candidate, with options by kind. Complement candidates (Chinese): VPC.semi, MVC, none. Light-verb candidates: LVC.full, LVC.cause, VID, none. Four-character tokens: a yes/no question (``a fixed idiom used as a verb or predicate here''). Particle candidates (English): VPC.full, VPC.semi, none; preposition candidates: IAV, VPC.full, none; complement candidates: VID, none. Every option carries one or two sentences from the guideline with examples. A candidate is kept when its most probable option is a category with $p \geq 0.5$; overlapping candidates are resolved by probability.
+
+\paragraph{After reflection.} The Chinese procedure grew from 64 to 80 lines of candidate rules and from 78 to 95 lines of decision code; the English one from 44 to 83 and from 69 to 96. New rules include exception lists (complements after perception verbs, causatives followed by a clause), new candidate kinds (English \emph{verb + particle + of}, idiom candidates \emph{verb + preposition + noun}), and per-verb thresholds (a stricter one for \emph{get} + noun).
+
+%=====================================================================
+\section{The Reflector's Prompt}
+\label{app:prompt}
+The system prompt describes the procedure (skills that split the input by rules, ask Jev closed questions and assemble the answers by rules) and ranks what makes a good edit: the correct answer must be among the options and a rule must turn it into the gold structure; a closed question is better than a rule that guesses; long or ambiguous option lists should be split or given a \emph{none} option; thresholds are constants to change; gold conventions belong in rules; rewording only when an option is clearly misread. Edits must be general (no special-casing of a sentence from the report), keep the code runnable, and not depend on each other. The user prompt contains the task description, the full text of the editable files, the titles of edits tried in earlier rounds with their outcome, and the batch report: for each sentence, the gold and predicted annotations, the scorer's findings, and for every node the questions asked with Jev's top options and probabilities. The reflector answers in JSON with a diagnosis and at most three edits. Rejected edits are returned once with their measured effect on each set and the reason for rejection.
+
+%=====================================================================
+\section{Runs and Costs}
+\label{app:costs}
 \begin{table}[h]
-\centering\small
-\setlength{\tabcolsep}{2.5pt}
-\begin{tabular}{@{}lp{5.3cm}@{}}
+\centering\footnotesize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{@{}lrr@{}}
 \toprule
-Skill & Rounds of closed questions \\
+Item & requests & \$ \\
 \midrule
-\skill{sent\_type} & span type (5-way); for a one-word span in PropBank, its use here (event, state, manner, thing) \\
-\skill{discourse} & relation (8 frequent ones); one yes/no per possible cut point \\
-\skill{predicate} & (1) head word, verb or abstract predicate; (2) sense, aspect, modal strength, negation; (3) role of each content word; antecedent of each core argument outside the clause \\
-\skill{np\_phrase} & (1) head and its form (8-way); (2) role of each modifier; sense if the head is an event \\
-\skill{special\_entity} & kind (name, date, quantity, percentage, ordinal); entity type (44); quantity type \\
-\skill{document} & (1) temporal relation to the anchor event; source of a view; earlier mention it co-refers with, or new; (2) confirm each co-reference (yes/no) \\
+\multicolumn{3}{@{}l}{\emph{Reflection (Sonnet requests; \$ Sonnet / Jev)}} \\
+PARSEME zh & 18 & 0.53 / 0.01 \\
+PARSEME en & 22 & 0.69 / 0.01 \\
+UMR zh ($\Pi_0$) & 23 & 4.27 / 0.74 \\
+UMR en & 22 & 3.41 / 0.24 \\
+\midrule
+\multicolumn{3}{@{}l}{\emph{Test sets}} \\
+PARSEME zh test, $\Pi_0$, Jev & 1,448 & 0.06 \\
+PARSEME zh test, cascade & 361 & 0.09 \\
+PARSEME en test, cascade & 720 & 0.14 \\
+UMR zh test, K4, Jev & 6,500 & 0.75 \\
+UMR zh test, K4, cascade & 2,554 & 1.18 \\
+Direct, PARSEME zh / en & 3,462 / 3,965 & 1.16 / 0.85 \\
+Direct, UMR zh / en & 138 / 143 & 0.19 / 0.11 \\
 \bottomrule
 \end{tabular}
-\caption{Closed questions asked by each decision skill of $J_0$. Values (numbers, dates, names) are read by rules.}
-\label{tab:questions}
+\caption{Billed costs. Decision costs during reflection are low because unchanged questions are answered from the cache.}
+\label{tab:costs}
 \end{table}
 
 %=====================================================================
-\section{Reflection prompts}
-\label{app:prompts}
-\todo{condense rsi/find\_problems.md, rsi/plan\_edits.md and rsi-jev2/diagnose.md into half a page each; include the list of proposal kinds and the acceptance constants of \S\ref{sec:reflect}}
-
-%=====================================================================
-\section{Second benchmark: planned procedure}
-\label{app:second}
-\paragraph{Task and data.} PARSEME 1.2 \citep{ramisch2020parseme}: identify verbal multiword expressions and their category in sentences in the \texttt{.cupt} format (CoNLL-U plus an MWE column), Chinese and one more language. We will simulate the cold start by drawing ``documents'' of 100 training sentences and learning from 1, 2 and 4 of them, measuring on the official development set and testing once on the official test set. Metrics are the official MWE-based and token-based P/R/F and MWE-based F on unseen expressions.
-
-\paragraph{Procedure.}
-\textbf{Candidates (rule).} For each verb, enumerate the combinations with its dependents that a category allows: a verb with a nominal object or oblique (light-verb construction); a verb with a particle or, in Chinese, a resultative or directional complement (verb-particle construction); serial verbs (multi-verb construction, following the Chinese-specific decision tree); and a verb with lexicalized dependents (verbal idiom). Expressions seen in training are matched by lemma (rule).
-\textbf{Decisions (closed).} Each guideline test becomes a yes/no question about one candidate in context, for example whether the noun is predicative, whether the verb is semantically light, or whether replacing a component changes the meaning. The decision tree of the guidelines becomes code that asks the next test according to the answers.
-\textbf{Assembly (rule).} Spans and categories are written to \texttt{.cupt}. Overlapping candidates are resolved by rule.
-\textbf{Learning.} Thresholds are calibrated per test. Measured reflection may reword tests, add candidate patterns or reorder the tree.
-
-\paragraph{Planned models and controls.} Closed seed and adapted procedures will use Jev, with Opus for reflection. A direct Jev classifier will select a category or non-MWE for each candidate, using the same frozen candidate generator and assembler; this controls for the answerer when testing the decision tree. Sonnet guideline/few-shot and fragment configurations are separate generative-system comparisons, and optional routing escalates Jev questions to Sonnet. Quality and total construction/inference cost will be reported separately. These configurations have not been evaluated \exper{E9}.
-
-\paragraph{Why PARSEME.} The PARSEME guidelines are, almost literally, a decision procedure. Candidates are found on the dependency trees that ship with the data, and each candidate is classified by linguistic tests organized as decision trees into a closed set of categories (verbal idioms, light-verb constructions, inherently reflexive verbs, verb-particle and multi-verb constructions). The test sets contain about 300 expressions per language that are unseen in training, which is the regime a procedure learned from a few documents should help with. The data is freely available, has an official scorer, and includes Chinese, which keeps the language constant with our \umr experiments; we will add one language from a different family \todo{choose: French or Polish}. Edition 2.0 extends the scheme to all syntactic categories in 17 languages \citep{scholivet2026parseme}, which allows a second test after a schema revision. Table~\ref{tab:second} lists the reference numbers.
-
-\begin{table}[h]
-\centering\small
-\setlength{\tabcolsep}{4pt}
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{@{}lcc@{}}
-\toprule
-PARSEME 1.2, Chinese test & unseen F1 & global F1 \\
-\midrule
-Two-rule baseline \citep{ramisch2020parseme} & 27.3 & -- \\
-Best 1.2 system on ZH (TRAVIS-mono) & 60.2 & \tbd \\
-Single LLM call with guidelines \exper{E9} & \tbd & \tbd \\
-Orchestration, seed \exper{E9} & \tbd & \tbd \\
-\quad + 1/2/4 training documents \exper{E9} & \tbd & \tbd \\
-\bottomrule
-\end{tabular}}
-\caption{Planned second benchmark. Reference numbers are from \citet{ramisch2020parseme}. Global F1 for the reference systems will be taken from the official result tables.}
-\label{tab:second}
-\end{table}
-
-\paragraph{Baselines.} The two-rule baseline and the official results of edition 1.2; a single LLM call with the guidelines (zero-shot and with the same training sentences as examples); and the fragment-mode variant of the same procedure.
-
-\paragraph{Planned generalization check.} To distinguish useful supervised reflection from fitting the diagnosis documents, we will compare the seed, the current reflection protocol and a cross-document selection protocol under matched gold, reflector and proposal budgets. The latter will propose edits from recurring training errors, state their guideline basis and applicability, and evaluate them on training-pool documents excluded from that proposal's diagnosis. Regression effects, instruction growth and cost will also be recorded. These selection documents are not final-test data. Checkpoint selection will use development data under a fixed query budget; frozen versions will be evaluated with repeated runs on a separate final set. The previously inspected H trajectory remains retrospective evidence, rather than a fresh confirmation set \exper{E3}, \exper{E6}, \exper{E8}.
-
-%=====================================================================
-\section{Pending experiments (to be removed before submission)}
-\label{app:pending}
-\begin{description}[leftmargin=1em,itemsep=1pt,font=\normalfont\bfseries]
-  \item[E1] One gold revision, one held-out set (H), one development set for every system in Table~\ref{tab:main}.
-  \item[E2] Stronger baselines: full guideline with gold examples from the same training documents; a generic tool-using agent; \citet{chun2024pipeline}.
-  \item[E3] Learning curves over 0/1/2/4/8 documents with three document orders.
-  \item[E4] Calibration: reliability diagrams and ECE against gold-derived answers for three decision models; calibrating Microsoft-Decision-1; calibration from 1, 2 and 4 documents; transfer of thresholds between models.
-  \item[E5] Routing: the full curve over $\tau$ on H; routed questions answered from gold as a simulated annotator; Sonnet as the only closed answerer on H.
-  \item[E6] Measured reflection: ablation of round 4, a larger and more varied development set, rounds 5--7, and the same loop with the other two decision models.
-  \item[E7] Ablations of the procedure: without the coverage and reentrancy rules; whole-graph generation instead of fragments; without the PropBank tool.
-  \item[E8] Ablations of reflection: wording-only edits vs.\ edits to rules, options and structure; unmeasured vs.\ measured acceptance at equal budget; training-only vs.\ training + regression + development measurement.
-  \item[E9] Second benchmark (PARSEME 1.2, Appendix~\ref{app:second}).
-  \item[E10] English \umr with the same procedure.
-  \item[E11] Cost table: calls, tokens, dollars and wall-clock per configuration.
-  \item[E12] Annotator time: correcting the procedure's output vs.\ annotating from scratch.
-  \item[E13] Evidence audit: recompute fine-grained judge results on the current gold; locate original $K_1/K_2$ predictions and scores; record scorer and model versions, gold checksums, invalid-graph handling, and the exact copying-guard coverage.
-\end{description}
-
-
-\section{Reproduction Status}
-The bundled AnCast rescoring JSON supports several reported macro averages but does not include the intermediate $K_1/K_2$ entries. Those H-score cells and current-gold judge counts remain blank \exper{E13}. The rescoring notes identify predictions from a separate experimental branch and a scorer not bundled with this checkout; the main-branch scorer also has an unresolved missing-variable path for failed graph matching. Before reproduction, provide a frozen scorer, all relevant predictions, gold checksums and exclusions, code commits, service/model versions and dates, runtime settings and a complete data-exposure ledger. Do not regenerate result tables with a different gold or silently drop failed predictions. Current cached-answer availability and redistribution permissions remain to be verified; commercial API access is not needed to audit already stored predictions.
+\section{Reproduction}
+\label{app:repro}
+The code, data splits, seed procedures, every version $\Pi_r$ with the round's report, proposals, trials and decision, and all test-set predictions are in the accompanying repository (\texttt{rsi-batch/} for the driver and the two task adapters, \texttt{experiment/decision-orchestration/} for the runs, with \texttt{summary.md} listing every number in this paper). A run is started with \texttt{rsi-batch/run\_parseme.sh LANG 12} or \texttt{rsi-batch/run\_umr\_v11.sh LANG 12}, and tested with \texttt{rsi-batch/evaluate\_test.py}.
