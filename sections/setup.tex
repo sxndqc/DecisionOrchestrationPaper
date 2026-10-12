@@ -18,7 +18,7 @@ PARSEME 2.0 \citep{savary2026parseme,scholivet2026parseme} has no Chinese data a
 \begin{table*}[t]
 \centering\small
 \setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}llp{9.6cm}l@{}}
+\resizebox{\textwidth}{!}{\begin{tabular}{@{}llp{9.6cm}l@{}}
 \toprule
 Module & Checks & What one unit compares (for matched gold/predicted nodes) & Unit kind \\
 \midrule
@@ -36,7 +36,7 @@ i. modal & modal dependency & an event's conceiver (parent) and modal strength (
 j. coreference & chains, subsets & is a mention linked to the same other mentions as in gold; subset relations & mention \\
 k. format & document format & are the predicted document-level relations well formed (no gold needed) & relation \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \caption{The fine-grained \umr judge. Every unit gets a verdict: correct (credit 1), partial (0.5, or the check's own credit), wrong, missing or extra (0). Recall counts the gold side (correct, partial, wrong, missing), precision the predicted side (correct, partial, wrong, extra), and each check reports its F1. Modules a--f never see reentrant edges, so module g's errors do not move them. Each predicted unit is attributed to the skill call that wrote it.}
 \label{tab:judge}
 \end{table*}

@@ -7,7 +7,7 @@ Before the experiments of the main text, we ran the fragment-mode \umr procedure
 \begin{table}[h]
 \centering\small
 \setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}lccc@{}}
+\resizebox{\columnwidth}{!}{\begin{tabular}{@{}lccc@{}}
 \toprule
 System & Refl.\ docs (sent.) & T1: 0004--05 & T2: 0005--07 \\
  & & \F / Comp. & \F / Comp. \\
@@ -19,7 +19,7 @@ $R_{23}$ & 2 (111) & 52.6 / 51.2 & -- \\
 $R_{32}$ & 3 (142) & 52.6 / 51.1 & 55.2 / 52.1 \\
 $R_{42}$ & 4 (201) & n/a & 55.6 / 52.2 \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \caption{Earlier Chinese \umr runs with Sonnet 5.5 fragment decisions (AnCast++ sentence-graph F and comprehensive score, macro-averaged over documents). $R_{xy}$: the version after round $y$ on training document $x$. ``n/a'': 0004 was a training document by then.}
 \label{tab:sonnet}
 \end{table}
