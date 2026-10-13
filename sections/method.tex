@@ -23,9 +23,12 @@ In \textbf{fragment mode}, an LLM reads the skill's instructions and input, uses
 In \textbf{closed mode}, the system uses codes to enumerate options and asks choice, yes/no or graded questions. A decision model returns probabilities over these options, which rules convert into the emit using thresholds in $\Theta$. 
 Both modes log inputs and outputs; closed mode also records options and probabilities.
 
-\paragraph{Calibration and Cascading}
+\paragraph{Cascading}
+For closed decisions with confidence lower than a \textit{cascading threshold}, a \textbf{cascading} mechanism routes the input to a stronger model that receives the same inputs and replaces the original answer.
+
+\paragraph{Calibration}
 \label{sec:calibration}
-To account for differences in decision model's output probabilities, we fit \textit{decision thresholds} in 0.1 increments on a small batch of training annoations for a best comprehensive score. For closed decisions with confidence $c=\max_o p(o)<\tau$, a \textbf{cascading} mechanism routes the input to a stronger model receives the same state and options and replaces the original answer, where the \textit{routing threshold} $\tau$ is chosen likewise.
+For the \textit{cascading threshold} above, and to account for different decision models' output probabilities for\textit{decision thresholds}, we fit both in 0.1 increments on a small batch of training annoations for a best comprehensive score. 
 
 \paragraph{Fine-grained evaluation.}
 \label{sec:evaluation}
