@@ -47,7 +47,7 @@ On PARSEME (Figure~\ref{fig:judge-parseme}), the closed seeds start low because 
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/judge_parseme.pdf}
-\caption{PARSEME error kinds on the test set, seed $V_0$ and $V_{10}$ of each procedure (counts of gold or predicted expressions): correct; same tokens with the wrong category; overlapping tokens; gold missed because no rule proposed its tokens, or because a proposed candidate was rejected; spurious predictions. At the end of each bar: MWE-based F (category-blind, as in the official script), bold for $V_{10}$ and the baseline. Numbers in Appendix Table~\ref{tab:judge-parseme}.}
+\caption{What each PARSEME procedure does with the test set, seed $V_0$ and $V_{10}$. Right of 0: the gold expressions (59 Chinese, 57 English, so every bar has the same length), coloured by outcome: found with the right category, found with the wrong one, partly found (overlapping tokens), missed because no rule proposed their tokens, or missed because a proposed candidate was rejected. Left of 0: spurious predictions, which overlap no gold expression (count beside the bar). A better procedure has more green on the right and less red on the left. Right column: MWE-based F1 (category-blind, as in the official script), bold for $V_{10}$ and the baseline. Numbers in Appendix Table~\ref{tab:judge-parseme}.}
 \label{fig:judge-parseme}
 \end{figure*}
 
