@@ -7,28 +7,29 @@ A registry runs rule nodes and decision nodes to produce an annotation and an ex
 \begin{equation}
 \label{eq:procedure}
 \begin{aligned}
-\Pi &= (\mathcal{S}, R, C, M, \theta, J, \mathcal{F}),\\
+\Pi &= (\mathcal{S}, R, C, M, W, \Theta, J, \mathcal{F}),\\
 s_i &= (I_i,O_i,d_i,T_i)\in\mathcal{S},\\
 \mathcal{F} &= (F_{\mathrm{diag}},F_{\mathrm{valid}},F_{\mathrm{comp}}).
 \end{aligned}
 \end{equation}
-Here, $\mathcal{S}$ contains decision nodes $s_i$, each implemented as a skill with input and output schemas $I_i,O_i$, instructions $d_i$, and available tools $T_i$. $R$ is the registry, $C$ the deterministic code, $M$ the fixed annotation and reflection models, and $\theta$ numerical parameters such as thresholds. $J$ is the fine-grained judge; $\mathcal{F}$ comprises diagnosis, edit validation and compression.
+Here, $\mathcal{S}$ contains decision nodes $s_i$, each implemented as a skill with input and output schemas $I_i,O_i$, instructions $d_i$, and available tools $T_i$. $R$ is the registry, $C$ the deterministic code, $W$ the worktree, $M$ the annotation and reflection models, and $\Theta$ numerical parameters such as thresholds. $J$ is the set of fine-grained judges; $\mathcal{F}$ comprises diagnosis, edit validation and compression.
 
-$R$ executes nodes in ordered groups (\emph{waves}), dispatching a rule node in $C$ or a decision node in $\mathcal{S}$ from typed outputs (\emph{emits}). At $s_i$, $M$ evaluates the input under $d_i$, with supporting information from $T_i$; $C$ validates or converts its answer to an emit conforming to $O_i$, using $\theta$ for closed decisions, and assembles the annotation. $J$ scores it against gold; $\mathcal{F}$ invokes a reflector in $M$ to locate errors and propose edits to the responsible instructions or code, then validates and compresses the revised procedure.
+$R$ executes nodes in ordered groups (\emph{waves}), dispatching a rule node in $C$ or a decision node in $\mathcal{S}$(\emph{emits}), categorizes outputs to worktree $W$ or to next nodes, and assembles the final outputs from the worktree $W$. At $s_i$, $M$ evaluates the input under $d_i$, with supporting information from $T_i$; $C$ validates or converts its answer to an emit conforming to $O_i$, using $\Theta$ for closed decisions, and assembles the annotation. $J$ scores it against gold in fine-grained aspects; $\mathcal{F}$ invokes a reflector in $M$ to locate errors, propose edits to the responsible instructions or code, then validates and compresses the revised procedure to avoid skill instructions from becoming too verbose.
 
-\paragraph{Decision modes.}
+\paragraph{Modes of Decision nodes.}
 \label{sec:modes}
 Decision nodes have two implementations with the same emit.
-In \textbf{fragment mode}, an LLM reads the skill's instructions and input, uses its available tools, and returns a graph fragment, span list or relation list. Code validates fields, enumerations, span bounds and edge endpoints; invalid outputs are retried.
-In \textbf{closed mode}, code enumerates options and asks choice, yes/no or graded questions. A decision model returns probabilities over these options, which rules convert into the emit using thresholds in $\theta$. Both modes log inputs and outputs; closed mode also records options and probabilities.
+In \textbf{fragment mode}, an LLM reads the skill's instructions and input, uses its available tools, and returns a graph fragment in structured outputs.
+In \textbf{closed mode}, the system uses codes to enumerate options and asks choice, yes/no or graded questions. A decision model returns probabilities over these options, which rules convert into the emit using thresholds in $\Theta$. 
+Both modes log inputs and outputs; closed mode also records options and probabilities.
 
 \paragraph{Threshold calibration.}
 \label{sec:calibration}
-To account for differences in model probabilities, we fit decision thresholds in $\theta$ by coordinate descent on training F: sweep each threshold over $\{0.2,0.3,\dots,0.8\}$ with the others fixed and keep a value if it improves F by more than 0.1. Calibration re-runs rules on cached answers without model calls.
+To account for differences in decision model's output probabilities, we fit decision thresholds by coordinate descent by sweeping each threshold over $\{0.2,0.3,\dots,0.8\}$ with the others fixed and keep a value if it improves F by more than 0.1 on a small batch of training annoations.
 
 \paragraph{Cascade.}
 \label{sec:cascade}
-For closed decisions with confidence $c=\max_o p(o)<\tau$, a stronger model receives the same state and options and replaces the original answer. The routing threshold $\tau$, included in $\theta$, is chosen on training data.
+For closed decisions with confidence $c=\max_o p(o)<\tau$, a stronger model receives the same state and options and replaces the original answer. The routing threshold $\tau$, included in $\Theta$, is chosen on training data.
 
 \paragraph{Fine-grained evaluation.}
 \label{sec:evaluation}
