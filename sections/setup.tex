@@ -2,6 +2,51 @@
 \section{Experiments}
 \label{sec:setup}
 
+\paragraph{Tasks.}
+We evaluate two annotation schemes (Figure~\ref{fig:tasks}). \umr assigns each sentence a token-aligned graph of concepts, roles and attributes, plus document-level temporal, modal and coreference relations \citep{gysel2021design,bonn2025umr2}. PARSEME identifies and categorizes verbal multiword expressions through linguistic tests \citep{ramisch2018parseme,ramisch2020parseme}.
+
+\begin{figure*}[t]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[font=\small, every node/.style={inner sep=2pt}]
+  % (a) UMR
+  \node[anchor=north west, align=left, font=\small\bfseries] at (0,0) {(a) \umr: a sentence graph, its alignment, and document-level relations};
+  \node[anchor=north west, align=left, font=\footnotesize] at (0,-0.45) {\emph{And$_1$ you$_2$ watch$_3$ him$_4$ pluck$_5$ a$_6$ few$_7$ pears$_8$ ,$_9$} \quad (sentence 10 of a narrative)};
+  \node[anchor=north west, draw, rounded corners=2pt, fill=gray!6, align=left, font=\scriptsize\ttfamily, text width=6.2cm] (g) at (0,-1.0) {%
+(s10w / watch-01\\
+\ \ :ARG0 (s10p / person\\
+\ \ \ \ \ \ :refer-person 2nd :refer-number singular)\\
+\ \ :ARG1 (s10p2 / pluck-01\\
+\ \ \ \ \ \ :ARG0 (s10p3 / person\\
+\ \ \ \ \ \ \ \ \ \ :refer-person 3rd :refer-number singular)\\
+\ \ \ \ \ \ :ARG1 (s10p4 / pear :quant (s10a / a-few))\\
+\ \ \ \ \ \ :aspect activity)\\
+\ \ :aspect state)};
+  \node[anchor=north west, draw, rounded corners=2pt, fill=gray!6, align=left, font=\scriptsize\ttfamily, text width=5.6cm] (d) at (6.55,-1.0) {%
+alignment: s10w 3-3, s10p 2-2, s10p2 5-5,\\
+\ \ s10p3 4-4, s10p4 8-8, s10a 6-7\\[2pt]
+:temporal ((s8e :after s10w)\\
+\ \ \ \ \ \ \ \ \ \ \ (s10w :overlap s10p2))\\
+:modal ((root :modal author)\\
+\ \ \ \ \ \ \ \ (author :full-affirmative s10w) ...)\\
+:coref ((s8p :same-entity s10p)\\
+\ \ \ \ \ \ \ \ (s9p2 :same-entity s10p4))};
+  % (b) PARSEME
+  \node[anchor=north west, align=left, font=\small\bfseries] at (12.6,0) {(b) PARSEME: verbal multiword expressions};
+  \node[anchor=north west, draw, rounded corners=2pt, fill=gray!6, align=left, font=\scriptsize, text width=6.4cm] at (12.6,-0.6) {%
+\emph{After that, he \underline{made}$_6$ a great \underline{effort}$_9$ to be calm.}\\
+\quad $\{6, 9\}$: \texttt{LVC.full} (light verb + predicative noun, discontinuous)\\[3pt]
+\emph{So Harry had been \underline{brought}$_5$ \underline{up}$_6$ by his dead mother's sister ...}\\
+\quad $\{5, 6\}$: \texttt{VPC.full} (the particle changes the verb's meaning)\\[3pt]
+\zht{我　已經　\underline{作出}$_3$　\underline{決定}$_4$　，　讓　他　發言　。}\\
+\quad $\{3, 4\}$: \texttt{LVC.full}; \quad $\{3\}$: \texttt{VPC.semi} (one token: \zht{作} + complement \zht{出})\\[3pt]
+Categories (EN 1.1): VID, LVC.full, LVC.cause, VPC.full, VPC.semi, IAV;\\
+(ZH 1.2): VID, LVC.full, LVC.cause, VPC.semi, MVC.};
+\end{tikzpicture}}
+\caption{Training examples of (a) \umr sentence graphs, token alignments and document-level relations, and (b) PARSEME verbal multiword expressions, which may be discontinuous or overlap; in Chinese, one token can form an expression.}
+\label{fig:tasks}
+\end{figure*}
+
 \paragraph{\umr data.}
 We use the data of the UMR parsing shared task at DMR 2026 \citep{zeman2026umrst}, whose training data is largely based on \umr 2.1 \citep{bonn2025umr2}. For testing we take the shared task's blind test documents for which we have the gold annotation: 13 Chinese documents (\texttt{zh-0021}--\texttt{0024}, \texttt{0027}--\texttt{0035}; 185 sentences) and the four English documents \texttt{en-0005}--\texttt{0008} (95 sentences; \texttt{0005} and \texttt{0007} are two annotations of the same text, kept as in the shared task). Documents are broken up: the Chinese test set is 20 chunks of five consecutive sentences, at least one per document (100 sentences), and the English one all 95 sentences in 20 chunks of at most five. Each chunk is parsed as a document of its own, and its gold keeps the document-level relations between nodes of the chunk. Input is tokenized as in the shared task. For training, reflection reads 10 batches of five consecutive sentences (50 sentences): in Chinese from 10 different training documents (\texttt{0001}--\texttt{0018}), in English from the native-annotation training documents that share no text with the test (the narrative \texttt{0004} and the news documents \texttt{0578}--\texttt{0579}; the training documents \texttt{0001} and \texttt{0003} are excluded, since their text is that of test documents \texttt{0006} and \texttt{0008}).
 
