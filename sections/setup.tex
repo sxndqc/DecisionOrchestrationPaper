@@ -82,8 +82,7 @@ PARSEME & \skill{candidates} & Rule & Propose token groups from forms, lemmas, p
 \begin{tikzpicture}[
     font=\scriptsize, >={Stealth[length=1.6mm]},
     sk/.style={draw, rounded corners=2pt, fill=blue!7, align=left, inner sep=3pt},
-    rl/.style={draw, rounded corners=2pt, fill=gray!12, align=left, inner sep=3pt},
-    bad/.style={text=red!70!black}]
+    rl/.style={draw, rounded corners=2pt, fill=gray!12, align=left, inner sep=3pt}]
   \node[sk] (s1) at (0,0) {\textbf{sent\_type} \emph{«And you watch him pluck a few pears,»}\\ predicate .95 \quad discourse .05};
   \node[sk] (p1) at (0,-1.35) {\textbf{predicate} \emph{«And you watch ...»}\\
      head: watch .65, pluck .31 \quad sense: watch-01\\
@@ -94,18 +93,18 @@ PARSEME & \skill{candidates} & Rule & Propose token groups from forms, lemmas, p
   \node[sk] (s3) at (2.6,-2.9) {\textbf{sent\_type} \emph{«him pluck a few pears»}: predicate 1.00};
   \node[sk] (p2) at (2.6,-4.25) {\textbf{predicate} \emph{«him pluck a few pears»}\\
      head: pluck .98 \quad sense: pluck-01\\
-     \textcolor{red!70!black}{aspect: performance .37, process .35, activity .26}\\
+     aspect: performance .37, process .35, activity .26\\
      role(\emph{him}): ARG0 .99 \quad \emph{few pears} $\to$ ARG1};
   \node[sk] (n1) at (2.6,-5.9) {\textbf{np\_phrase} \emph{«few pears»}: head pears .98, plural .95\\
-     \textcolor{red!70!black}{mod(\emph{few}): quant 1.00} $\Rightarrow$ (pear :quant (few))};
+     mod(\emph{few}): quant 1.00 $\Rightarrow$ (pear :quant (few))};
   \node[rl] (cov) at (-4.3,-4.6) {\textbf{coverage} (rule): no word left};
   \node[rl] (re) at (-4.3,-5.55) {\textbf{reentrancy} (rule): no merge};
   \node[sk] (doc) at (8.6,-1.0) {\textbf{document} (sentences 6--10)\\
-     time(\emph{watch}) vs.\ writing: \textcolor{red!70!black}{before .48}, overlap .48\\
+     time(\emph{watch}) vs.\ writing: before .48, overlap .48\\
      time(\emph{pluck}) vs.\ \emph{watch}: contained .77, overlap .22\\
      conceiver(\emph{pluck}): \emph{you} .95\\
      coref(\emph{you}): \emph{you} of sentence 8 .98 \\
-     \textcolor{red!70!black}{coref(\emph{watch}): \emph{pluck} of sentence 9 .50}};
+     coref(\emph{watch}): \emph{pluck} of sentence 9 .50};
   \draw[->] (s1) -- (p1);
   \draw[->] (p1) -- node[above, font=\tiny] {ARG0} (s2);
   \draw[->] (p1) -- node[right, font=\tiny] {ARG1} (s3);
@@ -116,7 +115,7 @@ PARSEME & \skill{candidates} & Rule & Propose token groups from forms, lemmas, p
   \node[anchor=north west, align=left, font=\scriptsize, text width=6.4cm] at (5.4,-3.6) {%
 \textbf{Errors} (gold in Figure~\ref{fig:tasks}a): the aspect of \emph{pluck} (gold \texttt{activity}), the quantifier (gold \texttt{a-few}, aligned to \emph{a few}) and the event coreference of \emph{watch}. The trace links each error to its decision, options and probabilities.};
 \end{tikzpicture}}
-\caption{A real trace of the closed-mode \umr seed with Jev. Blue: decision nodes with options and probabilities; grey: rule nodes; red: decisions that differ from gold (Figure~\ref{fig:tasks}a).}
+\caption{A real trace of the closed-mode \umr seed with Jev. Blue: decision nodes with options and probabilities; grey: rule nodes. The callout identifies decisions that differ from gold (Figure~\ref{fig:tasks}a).}
 \label{fig:walk}
 \end{figure*}
 
@@ -129,15 +128,15 @@ We write the seed procedures solely from the published guidelines before reading
 \paragraph{Models and batches}
 Each training batch contains five sentences. Fragment-mode parsing uses GPT-6-luna and Claude Haiku 5.5; the smaller comparison also uses Claude Sonnet 5.5. Closed-mode parsing uses Jev 1.13 \citep{typesafe2026jev}, OpenAI Decisions with \texttt{gpt-6-luna-decisions} \citep{openai2026decisions}, and Microsoft-Decision-1 \citep{microsoft2026decision}. Claude Sonnet 5.5 performs reflection. OpenAI Decisions is called through OpenAI's API, Sonnet's \umr decisions in the smaller comparison through the Claude subscription, and all other models through OpenRouter.
 
-\paragraph{Reflection protocol.}
+\paragraph{Reflection protocol}
 \label{sec:reflection-protocol}
-Each round parses one batch of five gold sentences. The reflector reads gold and predicted annotations, unit-level scores, attributed errors, decision traces and editable files, then proposes additions, replacements or deletions (Algorithm~\ref{alg:reflect}). In closed mode, each edit is applied to a copy and evaluated on the current and all earlier training batches. It is kept if current-batch F improves and earlier-batch F falls by at most 0.5, or earlier-batch F improves without a current-batch loss. Rejected edits are returned once with their measured effects. In fragment mode, edits are accepted if they apply and leave the procedure loadable, then tested in the next round.
+The reflector reads gold and predicted annotations, and unit-level scores, attributed errors, decision traces and editable files, then proposes additions, replacements or deletions to instructions (Algorithm~\ref{alg:reflect}). In closed mode, each edit is applied to a copy and evaluated on the current and all earlier training batches. It is kept if current-batch comprehensive score improves and earlier-batch score falls by at most 0.5, or earlier-batch score improves without a current-batch loss. Rejected edits are returned once with their measured effects. In fragment mode, edits are accepted if they apply and leave the procedure loadable.
 
-Files exceeding $1.5\times$ their seed length are compressed, merging redundant rules while preserving options, questions and conventions. In closed mode, a compressed version is kept only if neither batch set loses more than 0.5 F. Each round freezes the revised procedure with a reviewable diff. Edits copying six consecutive Chinese characters or four English words from test text are rejected.
+Files exceeding $1.5\times$ their seed length are compressed, merging redundant rules while preserving output format parts like options, questions and conventions.
 
-\paragraph{Metrics.}
+\paragraph{Metrics}
 \label{sec:metrics}
-\umr is scored with the shared task's official \jm{} F1 \citep{zeman2026umrst}: predicted nodes are mapped to gold nodes through their token alignment, and F1 is computed over the triples (concepts, relations, attributes) of mapped nodes, document-level relations included; we also report it without the document level (``no doc''). For diagnosis we use a fine-grained judge (Table~\ref{tab:judge}): it maps nodes with AnCast \citep{sun2024ancast}, breaks the comparison into 25 checks in 11 modules, gives every unit a verdict and every check its own F1, and attributes each predicted unit to the skill call that produced it. PARSEME is scored with the official evaluation script: MWE-based F1 (exact token set and category), token-based F1, and F1 on expressions unseen in the training data. A PARSEME judge sorts every gold and predicted expression into six kinds: correct, wrong category (same tokens), partial (overlapping tokens), missed without a candidate (no rule proposed its tokens), missed after rejection (a candidate had them), and spurious (no overlap with any gold expression).
+\umr is scored with the shared task's official \jm{} F1 \citep{zeman2026umrst}, where predicted nodes are mapped to gold nodes through their token alignment, and F1 is computed over the triples (concepts, relations, attributes) of mapped nodes, document-level relations included. For diagnosis we use a fine-grained judge (Table~\ref{tab:judge}): it maps nodes with AnCast \citep{sun2024ancast}, breaks the comparison into 25 checks in 11 modules, gives every unit a verdict and every check its own F1, and attributes each predicted unit to the skill call that produced it. PARSEME is scored with the official evaluation suite \textit{MWE-based F1} (exact token set and category), token-based F1, and F1 on expressions unseen in the training data. A PARSEME judge sorts every gold and predicted expression into six kinds: correct, wrong category (same tokens), partial (overlapping tokens), missed without a candidate (no rule proposed its tokens), missed after rejection (a candidate had them), and spurious (no overlap with any gold expression).
 
 \begin{table*}[t]
 \centering\small
