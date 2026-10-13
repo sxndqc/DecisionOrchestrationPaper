@@ -77,50 +77,24 @@ We evaluate the framework with small LLMs and decision models on Chinese and Eng
 
 Our contributions are threefold:
 \begin{itemize}[leftmargin=*,itemsep=2pt,topsep=2pt]
-\item \textbf{An executable framework for annotation and moderation.}
+\item \textbf{A traceable framework for annotation and moderation.}
 Decision orchestration combines code-enforced constraints with local model judgments. Explicit decision traces support moderation through targeted revisions to skills and the harness, enabling recursive self-improvement without changing model weights.
 
-\item \textbf{Empirical evidence under limited supervision.}
-Across Chinese and English UMR and PARSEME, we show that small language models and decision models can perform complex annotation through guideline-derived procedures. These procedures outperform a frontier prompting baseline in some settings, and reflection with 50 annotated sentences improves sixteen of eighteen completed procedures.
+\item \textbf{Improvement with minimal supervision.}
+Reflection using only a few dozen sentences outperforms simply-prompted larger model baselines, indicating the framework's great ability in effectively learn from scarce examples.
 
 \item \textbf{An analysis of how procedures improve and fail.}
 We trace errors to candidate generation, model judgments and structural rules, and examine the revisions made during reflection. The analysis reveals both concrete opportunities for improvement and limits that local model decisions alone cannot overcome.
 \end{itemize}
 
-
-
-
-Our contributions are:
-\begin{itemize}[leftmargin=*,itemsep=2pt,topsep=2pt]
-\item \textbf{An executable annotation framework.}
-Decision orchestration turns guidelines into inspectable procedures: code enforces annotation constraints, while small LLMs produce local fragments or decision models assign probabilities to candidate annotations.
-
-\item \textbf{Moderation through targeted revision.}
-Step-level records connect errors to the decisions that produced them, enabling a reflector to diagnose failures and revise the responsible skills or the harness itself. This supports recursive self-improvement of the procedure without changing model weights.
-
-\item \textbf{Evidence of both gains and limits.}
-Guideline-only procedures outperform a frontier model given the full guideline on Chinese UMR and PARSEME, and reflection improves sixteen of eighteen completed procedures by up to 31 F1 points. The gains are task-dependent: the frontier baseline remains stronger on English PARSEME, while closed procedures are limited by the candidates their code can generate. Decision traces expose these limits and identify concrete targets for improvement.
 \end{itemize}
 
+% Our findings:
+% \begin{itemize}[leftmargin=*,itemsep=2pt,topsep=2pt]
+% \item \textbf{Steps beat the guideline in context.} Without any gold, the best seed procedure matches or beats GPT-6.1-sol given the whole guideline on three of four task--language pairs; on Chinese \umr every closed seed is 9--11 points ahead on the official \jm{} F1 (Jev 33.9 against 23.9), although a content-based metric, AnCast++, still puts the frontier model ahead (\S\ref{sec:results}). On English PARSEME, a scheme close to what frontier models already know, the frontier model stays ahead (\S\ref{sec:results}).
+% \item \textbf{A handful of gold goes a long way.} Ten rounds of reflection on five gold sentences each improve sixteen of eighteen procedures, by up to 31 points (Jev on English PARSEME, 22.5 $\to$ 53.7). The best \umr procedure (Chinese, 37.6) is decided by Jev at under 30 cents per hundred sentences, and on English PARSEME every reflected procedure is above the best shared-task system re-scored on the same sentences.
 
-Our contributions are:
-\begin{itemize}[leftmargin=*,itemsep=2pt,topsep=2pt]
-\item \textbf{An executable annotation framework.}
-Decision orchestration combines code-enforced constraints with annotation fragments from small LLMs or probabilities from decision models. Without annotated examples, its Chinese \umr seeds using decision models outperform a frontier model given the full guideline by 9--11 F1 points.
-
-\item \textbf{Moderation through traceable decisions.}
-Step-level records enable a reflector to diagnose errors and revise skills or the harness itself. Our analysis shows how candidate-generation failures limit closed procedures and how measuring proposed edits helps control reflection drift.
-
-\item \textbf{Improvement with minimal supervision.}
-Reflection using only 50 annotated sentences improves sixteen of eighteen completed procedures, by up to 31 F1 points. On the sampled English PARSEME test set, all reflected procedures outperform the best system from the 2018 shared task, although the frontier prompting baseline remains stronger.
-\end{itemize}
-
-Our findings:
-\begin{itemize}[leftmargin=*,itemsep=2pt,topsep=2pt]
-\item \textbf{Steps beat the guideline in context.} Without any gold, the best seed procedure matches or beats GPT-6.1-sol given the whole guideline on three of four task--language pairs; on Chinese \umr every closed seed is 9--11 points ahead on the official \jm{} F1 (Jev 33.9 against 23.9), although a content-based metric, AnCast++, still puts the frontier model ahead (\S\ref{sec:results}). On English PARSEME, a scheme close to what frontier models already know, the frontier model stays ahead (\S\ref{sec:results}).
-\item \textbf{A handful of gold goes a long way.} Ten rounds of reflection on five gold sentences each improve sixteen of eighteen procedures, by up to 31 points (Jev on English PARSEME, 22.5 $\to$ 53.7). The best \umr procedure (Chinese, 37.6) is decided by Jev at under 30 cents per hundred sentences, and on English PARSEME every reflected procedure is above the best shared-task system re-scored on the same sentences.
-\item \textbf{Errors have addresses.} The step-level judge shows where the two kinds of decision fail: closed procedures lose where the code offers no right option (e.g., an English lemmatizer that leaves \textit{stolen} unreduced), fragment procedures where structure is left to the model; measured edits keep closed reflection from drifting, unmeasured fragment edits do not (\S\ref{sec:case}, \S\ref{sec:discussion}).
-\end{itemize}
+% \end{itemize}
 
 
 These results suggest that LLMs can learn an annotation scheme from its instructions and a few dozen gold sentences, keep improving as new gold arrives, and that the models doing the annotating need not be frontier models: even simple decision models can serve.
