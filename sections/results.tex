@@ -50,14 +50,14 @@ The reflector lists 9--11 problems per \umr batch and 2--4 per PARSEME batch, an
 
 \begin{figure}[!tp]
 \centering
-\includegraphics[width=\columnwidth]{figures/judge_umr.pdf}
+\includegraphics[width=0.8\columnwidth]{figures/judge_umr.pdf}
 \caption{Reflection improvement of the fine-grained \umr judge on the test set: F1 (\%) of each check, before and after reflection. Each row is one check, with one line per decider: orange, Haiku 5.5 making fragment decisions; blue, Jev 1.13 making closed decisions. The open circle is the seed $V_0$, the arrowhead $V_{10}$; an arrow pointing right means reflection raised the score, pointing left that it lowered it, and a lone marker that it barely changed. Chinese above, English below; panel titles count the rising arrows. Shaded row: the official \jm{} F1. Selected checks; numbers in Appendix Table~\ref{tab:judge-umr}, all 25 checks in the released results.}
 \label{fig:judge-umr}
 \end{figure}
 
 \begin{figure}[!tp]
 \centering
-\includegraphics[width=\columnwidth]{figures/judge_parseme.pdf}
+\includegraphics[width=0.8\columnwidth]{figures/judge_parseme.pdf}
 \caption{What each PARSEME procedure does with the test set, seed $V_0$ and $V_{10}$; Chinese above, English below. Right of 0: the gold expressions. Green (found, correct): predicted with the same tokens and category. Orange (found, wrong category): same tokens, other category. Blue (partly found): the prediction shares some but not all tokens. Pink (missed: no candidate proposed): no rule of the procedure proposed the tokens, so no decision was ever asked. Purple (missed: candidate rejected): a candidate with these tokens was proposed and then rejected by a decision or threshold. Left of 0, red (spurious): predictions that overlap no gold expression, with their count beside the bar; bars longer than 60 are cut (white break mark). A better procedure has more green on the right and a shorter red bar on the left. Right column: MWE-based F1 (category-blind, as in the official script), bold for $V_{10}$ and the baseline (GPT-6.1-sol with the guideline, one bar). Numbers in Appendix Table~\ref{tab:judge-parseme}.}
 \label{fig:judge-parseme}
 \end{figure}
