@@ -131,11 +131,13 @@ Each training batch contains five sentences. Fragment-mode parsing uses GPT-6-lu
 
 \paragraph{Reflection protocol.}
 \label{sec:reflection-protocol}
-After each training batch, the reflector compares predictions with gold and proposes edits. In closed mode, an edit is kept if it improves the current batch without lowering earlier batches by more than 0.5 F, or improves earlier batches without hurting the current batch. In fragment mode, valid edits are kept and evaluated in the next round (Algorithm~\ref{alg:reflect}).
+Each round parses one batch of five gold sentences. The reflector reads gold and predicted annotations, unit-level scores, attributed errors, decision traces and editable files, then proposes additions, replacements or deletions (Algorithm~\ref{alg:reflect}). In closed mode, each edit is applied to a copy and evaluated on the current and all earlier training batches. It is kept if current-batch F improves and earlier-batch F falls by at most 0.5, or earlier-batch F improves without a current-batch loss. Rejected edits are returned once with their measured effects. In fragment mode, edits are accepted if they apply and leave the procedure loadable, then tested in the next round.
+
+Files exceeding $1.5\times$ their seed length are compressed, merging redundant rules while preserving options, questions and conventions. In closed mode, a compressed version is kept only if neither batch set loses more than 0.5 F. Each round freezes the revised procedure with a reviewable diff. Edits copying six consecutive Chinese characters or four English words from test text are rejected.
 
 \paragraph{Metrics.}
 \label{sec:metrics}
-We report official \jm{} F1 for \umr, with and without document-level relations \citep{zeman2026umrst}, and official MWE-based F1 for PARSEME, requiring an exact token set and category match. Secondary analyses use a fine-grained \umr judge (Table~\ref{tab:judge}) and PARSEME token-based and unseen-expression F1.
+\umr is scored with the shared task's official \jm{} F1 \citep{zeman2026umrst}: predicted nodes are mapped to gold nodes through their token alignment, and F1 is computed over the triples (concepts, relations, attributes) of mapped nodes, document-level relations included; we also report it without the document level (``no doc''). For diagnosis we use a fine-grained judge (Table~\ref{tab:judge}): it maps nodes with AnCast \citep{sun2024ancast}, breaks the comparison into 25 checks in 11 modules, gives every unit a verdict and every check its own F1, and attributes each predicted unit to the skill call that produced it. PARSEME is scored with the official evaluation script: MWE-based F1 (exact token set and category), token-based F1, and F1 on expressions unseen in the training data. A PARSEME judge sorts every gold and predicted expression into six kinds: correct, wrong category (same tokens), partial (overlapping tokens), missed without a candidate (no rule proposed its tokens), missed after rejection (a candidate had them), and spurious (no overlap with any gold expression).
 
 \begin{table*}[t]
 \centering\small
@@ -164,4 +166,4 @@ k. format & document format & are the predicted document-level relations well fo
 \end{table*}
 
 \paragraph{State of the art.}
-For PARSEME, we re-score TRAVIS-multi (Chinese 1.2) and Milos (English 1.1) on our test sentences. For \umr, we report Orange/08's published full-test scores \citep{zeman2026umrst}; its outputs are unavailable for re-scoring on our chunks.
+For \umr we compare with the best shared-task submission \citep{zeman2026umrst}, Orange/08 (36.5 \jm{} in Chinese, 22.2 in English), quoted as published for the full blind test set; we do not have the submissions' outputs, so they are not re-scored on our chunks. For PARSEME, the best systems of the shared tasks (Chinese 1.2: TRAVIS-mono/-multi, open track; English 1.1: Milos, open track, and TRAPACC, closed track), re-scored on our sentences, and the best published English 1.1 result \citep{rohanian2019bridging}, quoted on the full test set.
