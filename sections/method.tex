@@ -33,8 +33,8 @@ The judges in $J$ score individual annotation units against gold; execution trac
 
 \paragraph{Reflection.}
 \label{sec:reflect}
-Each round uses five gold sentences and has three steps (Algorithm~\ref{alg:reflect}):
-\textbf{Diagnose ($F_{\mathrm{diag}}$):} parse and judge the batch; the reflector reads gold, predictions, unit-level scores, attributed errors, decision traces and editable files to locate causes and propose additions, replacements or deletions.
-\textbf{Validate ($F_{\mathrm{valid}}$):} in closed mode, apply each edit to a copy and re-parse the current and all earlier batches. Keep it if current-batch F improves and earlier-batch F falls by at most 0.5, or earlier-batch F improves without a current-batch loss; return rejected edits once with their measured effects. In fragment mode, accept edits that apply and leave the procedure loadable, then test them in the next round.
-\textbf{Compress ($F_{\mathrm{comp}}$):} rewrite files exceeding $1.5\times$ their seed length, merging redundant rules while preserving options, questions and conventions; in closed mode, keep the rewrite only if neither batch set loses more than 0.5 F.
-Each round freezes the revised procedure with a reviewable diff. Edits copying six consecutive Chinese characters or four English words from test text are rejected.
+Reflection revises the procedure in three steps:
+\textbf{Diagnose ($F_{\mathrm{diag}}$):} use judge feedback and execution traces to locate errors and propose targeted edits.
+\textbf{Validate ($F_{\mathrm{valid}}$):} check candidate revisions and retain those that satisfy the acceptance criteria.
+\textbf{Compress ($F_{\mathrm{comp}}$):} merge redundant instructions and rules while preserving required options and conventions.
+The experimental protocol is detailed in \S\ref{sec:reflection-protocol} (Reflection protocol).
