@@ -14,7 +14,7 @@ s_i &= (I_i,O_i,d_i,T_i)\in\mathcal{S},\\
 \end{equation}
 Here, $\mathcal{S}$ contains decision nodes $s_i$, each implemented as a skill with input and output schemas $I_i,O_i$, instructions $d_i$, and available tools $T_i$. $R$ is the registry, $C$ the deterministic code, $W$ the worktree, $M$ the annotation and reflection models, and $\Theta$ numerical parameters such as thresholds. $J$ is the set of fine-grained judges; $\mathcal{F}$ comprises diagnosis, edit validation and compression.
 
-$R$ executes nodes in ordered groups (\emph{waves}), dispatching a rule node in $C$ or a decision node in $\mathcal{S}$(\emph{emits}), categorizes outputs to worktree $W$ or to next nodes, and assembles the final outputs from the worktree $W$. At $s_i$, $M$ evaluates the input under $d_i$, with supporting information from $T_i$; $C$ validates or converts its answer to an emit conforming to $O_i$, using $\Theta$ for closed decisions, and assembles the annotation. $J$ scores it against gold in fine-grained aspects; $\mathcal{F}$ invokes a reflector in $M$ to locate errors, propose edits to the responsible instructions or code, then validates and compresses the revised procedure to avoid skill instructions from becoming too verbose.
+$R$ executes nodes in ordered groups (\emph{waves}), dispatching a rule node in $C$ or a decision node in $\mathcal{S}$(\emph{emits}), categorizes outputs to worktree $W$ or to next nodes, and assembles the final outputs from the worktree $W$. At $s_i$, $M$ evaluates the input under $d_i$, with supporting information from $T_i$; $C$ validates or converts its answer to an emit conforming to $O_i$, using $\Theta$ for closed decisions, and assembles the annotation. $J$ scores it against gold in fine-grained aspects, along with a \textit{comprehensive score} defined by the annotation benchmark; $\mathcal{F}$ invokes a reflector in $M$ to locate errors, propose edits to the responsible instructions or code, then validates and compresses the revised procedure to avoid skill instructions from becoming too verbose.
 
 \paragraph{Modes of Decision nodes.}
 \label{sec:modes}
@@ -23,17 +23,13 @@ In \textbf{fragment mode}, an LLM reads the skill's instructions and input, uses
 In \textbf{closed mode}, the system uses codes to enumerate options and asks choice, yes/no or graded questions. A decision model returns probabilities over these options, which rules convert into the emit using thresholds in $\Theta$. 
 Both modes log inputs and outputs; closed mode also records options and probabilities.
 
-\paragraph{Threshold calibration.}
+\paragraph{Calibration and Cascading}
 \label{sec:calibration}
-To account for differences in decision model's output probabilities, we fit decision thresholds by coordinate descent by sweeping each threshold over $\{0.2,0.3,\dots,0.8\}$ with the others fixed and keep a value if it improves F by more than 0.1 on a small batch of training annoations.
-
-\paragraph{Cascade.}
-\label{sec:cascade}
-For closed decisions with confidence $c=\max_o p(o)<\tau$, a stronger model receives the same state and options and replaces the original answer. The routing threshold $\tau$, included in $\Theta$, is chosen on training data.
+To account for differences in decision model's output probabilities, we fit \textit{decision thresholds} in 0.1 increments on a small batch of training annoations for a best comprehensive score. For closed decisions with confidence $c=\max_o p(o)<\tau$, a \textbf{cascading} mechanism routes the input to a stronger model receives the same state and options and replaces the original answer, where the \textit{routing threshold} $\tau$ is chosen likewise.
 
 \paragraph{Fine-grained evaluation.}
 \label{sec:evaluation}
-The judge $J$ aligns predicted and gold units and assigns each a verdict (correct, partial, wrong, missing or extra) and credit: 1 for correct, check-specific partial credit, and 0 otherwise. It reports precision, recall and F1 separately for each check (\S\ref{sec:metrics}). Traces identify the skill call behind each predicted unit; missing gold units are flagged. Reflection receives these unit-level records and decisions. Aggregate task F1 is used for reporting and edit acceptance.
+The judge $J$ compares predicted and gold units and assigns each a verdict. It reports precision, recall and F1 separately for each check (\S\ref{sec:metrics}). Traces identify the skill call behind each predicted unit; missing gold units are flagged. Reflection receives these unit-level records and decisions. Aggregate task F1 is used for reporting and edit acceptance.
 
 \paragraph{Reflection.}
 \label{sec:reflect}
