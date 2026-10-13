@@ -57,14 +57,70 @@
 
 Annotating a complex ontology takes two things: an understanding of the structure the scheme describes, and the scheme's own codebook, the conventions that make one annotation right and a plausible alternative wrong \citep{kim2026refining}. Early in a project, a new scheme, language or domain has a guideline but little gold. With enough gold, supervised models learn both \citep{bevilacqua2021spring,bai2022graph}; with a handful of sentences they learn neither. Large language models bring the first ingredient for free: they understand sentences, events and referents well enough to bootstrap an annotation. What remains is to give them the codebook.
 
-For simple labeling, the guideline fits into the prompt \citep{gilardi2023chatgpt,tan2024annotation,kim2026refining}. For complex schemes it does not. The \umr guidelines run to more than 300 pages \citep{gysel2021design}; put into one context, the rules that matter for a given sentence sit in the middle of a long document, where models use them least \citep{liu2024lost}, and an annotation must satisfy dozens of them at once, where following degrades with each added instruction \citep{harada2025instructions}. A second problem is just as practical. At the start of a project, people and models correct each other's errors, and correcting an error needs a diagnosis: which rule was misapplied, and where. When the whole guideline sits in one prompt and the model writes the whole annotation, an error cannot be traced to a rule, and fixing it means rewording a prompt and hoping.
+% For simple labeling, the guideline fits into the prompt \citep{gilardi2023chatgpt,tan2024annotation,kim2026refining}. For complex schemes it does not. The \umr guidelines run to more than 300 pages \citep{gysel2021design}; put into one context, the rules that matter for a given sentence sit in the middle of a long document, where models use them least \citep{liu2024lost}, and an annotation must satisfy dozens of them at once, where following degrades with each added instruction \citep{harada2025instructions}. A second problem is just as practical. At the start of a project, people and models correct each other's errors, and correcting an error needs a diagnosis: which rule was misapplied, and where. When the whole guideline sits in one prompt and the model writes the whole annotation, an error cannot be traced to a rule, and fixing it means rewording a prompt and hoping.
 
-We propose \textbf{decision orchestration} (Figure~\ref{fig:overview}): compile the guideline into a procedure of small steps and run them in order. Code (rule nodes) cuts the input, enumerates candidates and assembles the output; models are consulted only at decision nodes, each with the part of the guideline it needs. A decision node is either a \emph{fragment} decision, in which an LLM writes a small schema-checked piece of the annotation, or a set of \emph{closed} questions whose options code has listed, answered with probabilities by a decision model and read by rules with thresholds. Because every output unit comes from a logged step, every error has an address. A reflector LLM uses these addresses to improve the procedure itself from five gold sentences at a time: it lists every problem it finds, edits the responsible steps, and in closed mode keeps only edits that measurably help; we call this recursive self-improvement (RSI) of the procedure, as the model weights never change.
+For simple labeling, the guideline fits into the prompt \citep{gilardi2023chatgpt,tan2024annotation}. Complex schemes pose two challenges: a) \emph{guideline following}: the \umr guidelines exceed 300 pages \citep{gysel2021design}, burying relevant rules in long contexts \citep{liu2024lost} and an annotation must satisfy dozens of them at once, where following degrades with each added instruction \citep{harada2025instructions}. b)\emph{interpretable moderation}: correcting annotation errors requires diagnosing and refining how guidelines are applied \citep{kim2026refining}. When one prompt produces the whole annotation, errors are difficult to trace to specific decisions, leaving prompt revisions poorly targeted.
 
-To our knowledge, this is the first work to annotate complex schemes step by step along their guidelines, and we show that it pays twice: (1) errors are diagnosable and can be fixed where they arise, and (2) with very little data, RSI makes the procedure much better than the guideline it started from and than a frontier model given the whole guideline. We use small LLMs (Claude Haiku 5.5, and GPT-6-luna on PARSEME) and, beyond them, fast decision models that output only probabilities (Jev, the OpenAI Decisions API, Microsoft-Decision-1), with a mid-size reflector (Claude Sonnet 5.5). We test on samples of two complex benchmarks, each in Chinese and English: the test sets of the 2026 UMR parsing shared task \citep{zeman2026umrst} and PARSEME verbal multiword expressions \citep{ramisch2018parseme,ramisch2020parseme}, starting from seeds written from the guidelines alone, with no examples. Our findings:
+% We propose \textbf{decision orchestration} (Figure~\ref{fig:overview}): compile the guideline into a procedure of small steps and run them in order. Code (rule nodes) cuts the input, enumerates candidates and assembles the output; models are consulted only at decision nodes, each with the part of the guideline it needs. A decision node is either a \emph{fragment} decision, in which an LLM writes a small schema-checked piece of the annotation, or a set of \emph{closed} questions whose options code has listed, answered with probabilities by a decision model and read by rules with thresholds. Because every output unit comes from a logged step, every error has an address. A reflector LLM uses these addresses to improve the procedure itself from five gold sentences at a time: it lists every problem it finds, edits the responsible steps, and in closed mode keeps only edits that measurably help; we call this recursive self-improvement (RSI) of the procedure, as the model weights never change.
+
+We propose \textbf{decision orchestration} (Figure~\ref{fig:overview}), which compiles annotation guidelines into executable steps. Code enforces the output format, annotation inventory and structural constraints; models are consulted only at decision nodes, each with the part of the guideline it needs. Each node returns either a \emph{fragment}, a schema-checked annotation from an LLM, or a \emph{decision}, probabilities over candidate annotations from a decision model \citep{typesafe2026jev,openai2026decisions,microsoft2026decision}. Each step is explicit and logged, allowing a reflector LLM to trace errors to the very steps that produced them and revise the responsible skills or the harness itself. This enables recursive self-improvement (RSI) of the procedure without changing model weights.
+
+To our knowledge, this is the first work to annotate complex schemes step by step along their guidelines, and we show that it pays twice: (1) errors are diagnosable and can be fixed where they arise, and (2) with very little data, RSI makes the procedure much better than the guideline it started from and than a frontier model given the whole guideline. 
+
+% We experiment small LLMs (Claude Haiku 5.5 and GPT-6-luna) and fast \& cheap decision models that output only probabilities (Jev, the OpenAI Decisions API, Microsoft-Decision-1), with a mid-size reflector (Claude Sonnet 5.5). We test on samples of two complex benchmarks, each in Chinese and English: the test sets of the 2026 UMR parsing shared task \citep{zeman2026umrst} and PARSEME verbal multiword expressions \citep{ramisch2018parseme,ramisch2020parseme}, starting from seeds written from the guidelines alone, with no examples. 
+
+We evaluate the framework with small LLMs and decision models on Chinese and English UMR parsing \citep{zeman2026umrst} and PARSEME verbal multiword expressions \citep{ramisch2018parseme,ramisch2020parseme}. Reflection with a few dozen annotated sentences improves most procedures across the two tasks and languages. 
+
+% TODO: Not fixed yet.
+
+
+
+Our contributions are threefold:
+\begin{itemize}[leftmargin=*,itemsep=2pt,topsep=2pt]
+\item \textbf{An executable framework for annotation and moderation.}
+Decision orchestration combines code-enforced constraints with local model judgments. Explicit decision traces support moderation through targeted revisions to skills and the harness, enabling recursive self-improvement without changing model weights.
+
+\item \textbf{Empirical evidence under limited supervision.}
+Across Chinese and English UMR and PARSEME, we show that small language models and decision models can perform complex annotation through guideline-derived procedures. These procedures outperform a frontier prompting baseline in some settings, and reflection with 50 annotated sentences improves twelve of fourteen completed procedures.
+
+\item \textbf{An analysis of how procedures improve and fail.}
+We trace errors to candidate generation, model judgments and structural rules, and examine the revisions made during reflection. The analysis reveals both concrete opportunities for improvement and limits that local model decisions alone cannot overcome.
+\end{itemize}
+
+
+
+
+Our contributions are:
+\begin{itemize}[leftmargin=*,itemsep=2pt,topsep=2pt]
+\item \textbf{An executable annotation framework.}
+Decision orchestration turns guidelines into inspectable procedures: code enforces annotation constraints, while small LLMs produce local fragments or decision models assign probabilities to candidate annotations.
+
+\item \textbf{Moderation through targeted revision.}
+Step-level records connect errors to the decisions that produced them, enabling a reflector to diagnose failures and revise the responsible skills or the harness itself. This supports recursive self-improvement of the procedure without changing model weights.
+
+\item \textbf{Evidence of both gains and limits.}
+Guideline-only procedures outperform a frontier model given the full guideline on Chinese UMR and PARSEME, and reflection improves twelve of fourteen completed procedures by up to 31 F1 points. The gains are task-dependent: the frontier baseline remains stronger on English PARSEME, while closed procedures are limited by the candidates their code can generate. Decision traces expose these limits and identify concrete targets for improvement.
+\end{itemize}
+
+
+Our contributions are:
+\begin{itemize}[leftmargin=*,itemsep=2pt,topsep=2pt]
+\item \textbf{An executable annotation framework.}
+Decision orchestration combines code-enforced constraints with annotation fragments from small LLMs or probabilities from decision models. Without annotated examples, its Chinese \umr seeds using decision models outperform a frontier model given the full guideline by 8--11 F1 points.
+
+\item \textbf{Moderation through traceable decisions.}
+Step-level records enable a reflector to diagnose errors and revise skills or the harness itself. Our analysis shows how candidate-generation failures limit closed procedures and how measuring proposed edits helps control reflection drift.
+
+\item \textbf{Improvement with minimal supervision.}
+Reflection using only 50 annotated sentences improves twelve of fourteen completed procedures, by up to 31 F1 points. On the sampled English PARSEME test set, all reflected procedures outperform the best system from the 2018 shared task, although the frontier prompting baseline remains stronger.
+\end{itemize}
+
+Our findings:
 \begin{itemize}[leftmargin=*,itemsep=2pt,topsep=2pt]
 \item \textbf{Steps beat the guideline in context.} Without any gold, the best seed procedure matches or beats GPT-6.1-sol given the whole guideline on three of four task--language pairs; on Chinese \umr every closed seed is 8--11 points ahead (Jev 33.9 against 23.9 \jm{} F1). On English PARSEME, a scheme close to what frontier models already know, the frontier model stays ahead (\S\ref{sec:results}).
 \item \textbf{A handful of gold goes a long way.} Ten rounds of reflection on five gold sentences each improve twelve of fourteen procedures, by up to 31 points (Jev on English PARSEME, 22.5 $\to$ 53.7). The best \umr procedure (Chinese, 37.6) is decided by Jev at under 30 cents per hundred sentences, and on English PARSEME every reflected procedure is above the best shared-task system re-scored on the same sentences.
 \item \textbf{Errors have addresses.} The step-level judge shows where the two kinds of decision fail: closed procedures lose where the code offers no right option (e.g., an English lemmatizer that leaves \textit{stolen} unreduced), fragment procedures where structure is left to the model; measured edits keep closed reflection from drifting, unmeasured fragment edits do not (\S\ref{sec:case}, \S\ref{sec:discussion}).
 \end{itemize}
+
+
 These results suggest that LLMs can learn an annotation scheme from its instructions and a few dozen gold sentences, keep improving as new gold arrives, and that the models doing the annotating need not be frontier models: even simple decision models can serve.
