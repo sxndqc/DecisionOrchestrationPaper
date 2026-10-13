@@ -47,6 +47,78 @@ Categories (EN 1.1): VID, LVC.full, LVC.cause, VPC.full, VPC.semi, IAV;\\
 \label{fig:tasks}
 \end{figure*}
 
+\paragraph{Task-specific procedures.}
+Table~\ref{tab:skills} lists the decision skills and rule nodes. \umr runs sentence annotation, node merging and document linking in three waves: argument placeholders and uncovered tokens return to sentence routing, and document linking uses up to five preceding sentences. The \skill{predicate} and \skill{np\_phrase} skills have PropBank lookup tools. PARSEME first proposes token groups from dependencies; closed mode applies the guideline's tests to each candidate, while fragment mode can also return expressions absent from the candidates. Code writes the final annotations in both tasks. Figure~\ref{fig:walk} shows a \umr execution trace; Appendix~\ref{app:seeds} gives the seed instructions.
+
+\begin{table*}[t]
+\centering\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}lllp{8.4cm}@{}}
+\toprule
+Scheme & Node & Kind & Responsibility \\
+\midrule
+\umr & \skill{sent\_type} & Decision & Classify a span and route it; emit a graph for a leaf. \\
+ & \skill{discourse} & Decision & Split a span into clauses and assign their discourse relation. \\
+ & \skill{predicate} & Decision & Choose the head, sense, aspect, modal strength, polarity and argument roles. \\
+ & \skill{np\_phrase} & Decision & Annotate noun-phrase heads, modifiers, roles, quantity and reference attributes. \\
+ & \skill{special\_entity} & Decision & Annotate names, dates, quantities and ordinals. \\
+ & \skill{document} & Decision & Assign temporal, modal and coreference relations. \\
+ & \skill{coverage} & Rule & Return uncovered content tokens to sentence routing. \\
+ & \skill{antecedent} & Rule & Record participants outside the current span for later merging. \\
+ & \skill{reentrancy} & Rule & Merge nodes with matching types and spans and resolve outside participants. \\
+\midrule
+PARSEME & \skill{candidates} & Rule & Propose token groups from forms, lemmas, parts of speech and dependencies. \\
+ & \skill{decide} & Decision & Identify and categorize expressions: return token groups in fragment mode, or answer linguistic tests in closed mode. \\
+\bottomrule
+\end{tabular}
+\caption{Decision skills use instructions and model $M$; rule nodes are implemented in code $C$. Both schemes use code to assemble the final output.}
+\label{tab:skills}
+\end{table*}
+
+\begin{figure*}[t]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+    font=\scriptsize, >={Stealth[length=1.6mm]},
+    sk/.style={draw, rounded corners=2pt, fill=blue!7, align=left, inner sep=3pt},
+    rl/.style={draw, rounded corners=2pt, fill=gray!12, align=left, inner sep=3pt},
+    bad/.style={text=red!70!black}]
+  \node[sk] (s1) at (0,0) {\textbf{sent\_type} \emph{«And you watch him pluck a few pears,»}\\ predicate .95 \quad discourse .05};
+  \node[sk] (p1) at (0,-1.35) {\textbf{predicate} \emph{«And you watch ...»}\\
+     head: watch .65, pluck .31 \quad sense: watch-01\\
+     aspect: state .66, activity .29\\
+     modal strength: full-affirmative .98 \quad negated: .03\\
+     role(\emph{you}): ARG0 .94 \quad \emph{him pluck a few pears} $\to$ ARG1};
+  \node[sk] (s2) at (-4.3,-3.15) {\textbf{sent\_type} \emph{«you»}: pronoun, a leaf\\ (person :refer-person 2nd :refer-number singular)};
+  \node[sk] (s3) at (2.6,-2.9) {\textbf{sent\_type} \emph{«him pluck a few pears»}: predicate 1.00};
+  \node[sk] (p2) at (2.6,-4.25) {\textbf{predicate} \emph{«him pluck a few pears»}\\
+     head: pluck .98 \quad sense: pluck-01\\
+     \textcolor{red!70!black}{aspect: performance .37, process .35, activity .26}\\
+     role(\emph{him}): ARG0 .99 \quad \emph{few pears} $\to$ ARG1};
+  \node[sk] (n1) at (2.6,-5.9) {\textbf{np\_phrase} \emph{«few pears»}: head pears .98, plural .95\\
+     \textcolor{red!70!black}{mod(\emph{few}): quant 1.00} $\Rightarrow$ (pear :quant (few))};
+  \node[rl] (cov) at (-4.3,-4.6) {\textbf{coverage} (rule): no word left};
+  \node[rl] (re) at (-4.3,-5.55) {\textbf{reentrancy} (rule): no merge};
+  \node[sk] (doc) at (8.6,-1.0) {\textbf{document} (sentences 6--10)\\
+     time(\emph{watch}) vs.\ writing: \textcolor{red!70!black}{before .48}, overlap .48\\
+     time(\emph{pluck}) vs.\ \emph{watch}: contained .77, overlap .22\\
+     conceiver(\emph{pluck}): \emph{you} .95\\
+     coref(\emph{you}): \emph{you} of sentence 8 .98 \\
+     \textcolor{red!70!black}{coref(\emph{watch}): \emph{pluck} of sentence 9 .50}};
+  \draw[->] (s1) -- (p1);
+  \draw[->] (p1) -- node[above, font=\tiny] {ARG0} (s2);
+  \draw[->] (p1) -- node[right, font=\tiny] {ARG1} (s3);
+  \draw[->] (s3) -- (p2);
+  \draw[->] (p2) -- node[right, font=\tiny] {ARG1} (n1);
+  \draw[->] (p1.west) -| (cov.north);
+  \draw[->, dashed] (p1.east) -- node[above, font=\tiny, sloped] {next waves} (doc.west);
+  \node[anchor=north west, align=left, font=\scriptsize, text width=6.4cm] at (5.4,-3.6) {%
+\textbf{Errors} (gold in Figure~\ref{fig:tasks}a): the aspect of \emph{pluck} (gold \texttt{activity}), the quantifier (gold \texttt{a-few}, aligned to \emph{a few}) and the event coreference of \emph{watch}. The trace links each error to its decision, options and probabilities.};
+\end{tikzpicture}}
+\caption{A real trace of the closed-mode \umr seed with Jev. Blue: decision nodes with options and probabilities; grey: rule nodes; red: decisions that differ from gold (Figure~\ref{fig:tasks}a).}
+\label{fig:walk}
+\end{figure*}
+
 \paragraph{\umr data.}
 We use the data of the UMR parsing shared task at DMR 2026 \citep{zeman2026umrst}, whose training data is largely based on \umr 2.1 \citep{bonn2025umr2}. For testing we take the shared task's blind test documents for which we have the gold annotation: 13 Chinese documents (\texttt{zh-0021}--\texttt{0024}, \texttt{0027}--\texttt{0035}; 185 sentences) and the four English documents \texttt{en-0005}--\texttt{0008} (95 sentences; \texttt{0005} and \texttt{0007} are two annotations of the same text, kept as in the shared task). Documents are broken up: the Chinese test set is 20 chunks of five consecutive sentences, at least one per document (100 sentences), and the English one all 95 sentences in 20 chunks of at most five. Each chunk is parsed as a document of its own, and its gold keeps the document-level relations between nodes of the chunk. Input is tokenized as in the shared task. For training, reflection reads 10 batches of five consecutive sentences (50 sentences): in Chinese from 10 different training documents (\texttt{0001}--\texttt{0018}), in English from the native-annotation training documents that share no text with the test (the narrative \texttt{0004} and the news documents \texttt{0578}--\texttt{0579}; the training documents \texttt{0001} and \texttt{0003} are excluded, since their text is that of test documents \texttt{0006} and \texttt{0008}).
 
