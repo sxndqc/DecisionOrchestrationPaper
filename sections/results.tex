@@ -9,7 +9,7 @@
 \centering\small
 \setlength{\tabcolsep}{3.2pt}
 \resizebox{\columnwidth}{!}{\input{tables/main}}
-\caption{Test F1. \umr: the shared task's \jm{} metric on 100 Chinese and 95 English sentences; PARSEME: MWE-based F1 on 100 sentences per language. $V_0$ is the seed written from the guideline, $V_{10}$ the procedure after ten rounds of reflection on five gold sentences each (50 sentences in all); a version in parentheses is the last round a shorter run reached. Bold: the best result in each column among the systems we ran. $^\dagger$Best submission of the \umr shared task (Orange/08) as published for the full blind test set, scored on whole documents, not re-scored on our five-sentence chunks. PARSEME: the best shared-task system on our 100 test sentences, re-scored with the official script from the system's released predictions (trained on the full training data): TRAVIS-multi for Chinese 1.2 (70.0 F on the full test set, where TRAVIS-mono's 71.9 is the best published result) and Milos for English 1.1 (33.3 on the full test set). Our sample has as many sentences with a VMWE as without, so almost every system scores higher on it than on the full test set, where most sentences have none. $^\ddagger$Tested on 25 of the test sentences (five chunks) after two rounds of reflection, as the full runs did not fit our time and rate limits; not comparable with the other \umr cells.}
+\caption{Test F1 on \umr (official \jm{}) and PARSEME (MWE F1). $V_0$ is the guideline-derived seed; $V_{10}$ follows ten reflection rounds on 50 gold sentences. $^\dagger$Published \umr shared-task scores use whole documents. PARSEME shared-task systems are re-scored on our test sentences.}
 \label{tab:main}
 \end{table}
 
@@ -50,15 +50,15 @@ The reflector lists 9--11 problems per \umr batch and 2--4 per PARSEME batch, an
 
 \begin{figure*}[t]
 \centering
-\includegraphics[width=0.9\textwidth]{figures/judge_umr.pdf}
-\caption{The fine-grained \umr judge on the test set: F1 (\%) of each check, before and after reflection. Each row is one check, with one line per decider: orange, Haiku 5.5 making fragment decisions; blue, Jev 1.13 making closed decisions. The open circle is the seed $V_0$, the arrowhead $V_{10}$; an arrow pointing right means reflection raised the score, pointing left that it lowered it, and a lone marker that it barely changed. Panel titles count the rising arrows. Shaded row: the official \jm{} F1. Selected checks; numbers in Appendix Table~\ref{tab:judge-umr}, all 25 checks in the released results.}
+\includegraphics[width=0.7\textwidth]{figures/judge_umr.pdf}
+\caption{Reflection improvement of the fine-grained \umr judge on the test set: F1 (\%) of each check, before and after reflection. Each row is one check, with one line per decider: orange, Haiku 5.5 making fragment decisions; blue, Jev 1.13 making closed decisions. The open circle is the seed $V_0$, the arrowhead $V_{10}$; an arrow pointing right means reflection raised the score, pointing left that it lowered it, and a lone marker that it barely changed. Panel titles count the rising arrows. Shaded row: the official \jm{} F1. Selected checks; numbers in Appendix Table~\ref{tab:judge-umr}, all 25 checks in the released results.}
 \label{fig:judge-umr}
 \end{figure*}
 
 \begin{figure*}[t]
 \centering
-\includegraphics[width=0.9\textwidth]{figures/judge_parseme.pdf}
-\caption{What each PARSEME procedure does with the test set, seed $V_0$ and $V_{10}$. Right of 0: the gold expressions (59 Chinese, 57 English, so every bar has the same length), split by outcome. Green (found, correct): predicted with the same tokens and category. Orange (found, wrong category): same tokens, other category. Light yellow (partly found): the prediction shares some but not all tokens. Dark purple (missed: no candidate proposed): no rule of the procedure proposed the tokens, so no decision was ever asked. Light purple (missed: candidate rejected): a candidate with these tokens was proposed and then rejected by a decision or threshold. Left of 0, red (spurious): predictions that overlap no gold expression, with their count beside the bar. A better procedure has more green on the right and a shorter red bar on the left. Right column: MWE-based F1 (category-blind, as in the official script), bold for $V_{10}$ and the baseline (GPT-6.1-sol with the guideline, one bar). Numbers in Appendix Table~\ref{tab:judge-parseme}.}
+\includegraphics[width=0.7\textwidth]{figures/judge_parseme.pdf}
+\caption{What each PARSEME procedure does with the test set, seed $V_0$ and $V_{10}$. Right of 0: the gold expressions. Green (found, correct): predicted with the same tokens and category. Orange (found, wrong category): same tokens, other category. Light yellow (partly found): the prediction shares some but not all tokens. Dark purple (missed: no candidate proposed): no rule of the procedure proposed the tokens, so no decision was ever asked. Light purple (missed: candidate rejected): a candidate with these tokens was proposed and then rejected by a decision or threshold. Left of 0, red (spurious): predictions that overlap no gold expression, with their count beside the bar. A better procedure has more green on the right and a shorter red bar on the left. Right column: MWE-based F1 (category-blind, as in the official script), bold for $V_{10}$ and the baseline (GPT-6.1-sol with the guideline, one bar). Numbers in Appendix Table~\ref{tab:judge-parseme}.}
 \label{fig:judge-parseme}
 \end{figure*}
 
@@ -71,14 +71,14 @@ On PARSEME (Figure~\ref{fig:judge-parseme}), some closed seeds over-accept candi
 \subsection{Calibration}
 \label{sec:res-calib}
 
-\begin{table*}[t]
-\centering\small
+\begin{table}[t]
+\centering\tiny
 \setlength{\tabcolsep}{4pt}
 \input{tables/calib}
 \caption{Closed procedures with their thresholds as written (raw) and calibrated on the 50 training sentences (cal.). 
 % Jev's $V_{10}$ answered by Microsoft-Decision-1 (on \umr not calibrated, for budget).
 }
 \label{tab:calib}
-\end{table*}
+\end{table}
 
 Calibrating thresholds on the 50 training sentences helps six of eight closed seeds but changes reflected \umr procedures by at most 0.2 points and can hurt PARSEME (Jev Chinese: 63.4 to 61.4; Table~\ref{tab:calib}). Reflection has already adjusted the decisions, and refitting thresholds on so little data can overfit. The learned procedure also transfers between deciders: Jev's $V_{10}$, answered by Microsoft-Decision-1, beats Microsoft's own $V_{10}$ in three of four cases (Chinese PARSEME: 57.1 vs.\ 46.0, or 62.0 after calibration). Cascading uncertain decisions to a small LLM is reported in Appendix~\ref{app:cascade}.

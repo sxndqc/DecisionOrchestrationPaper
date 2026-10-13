@@ -47,12 +47,12 @@ alignment: s10w 3-3, s10p 2-2, s10p2 5-5,\\
 Categories (EN 1.1): VID, LVC.full, LVC.cause, VPC.full, VPC.semi, IAV;\\
 (ZH 1.2): VID, LVC.full, LVC.cause, VPC.semi, MVC.};
 \end{tikzpicture}}
-\caption{Training examples of (a) \umr sentence graphs, token alignments and document-level relations, and (b) PARSEME verbal multiword expressions, which may be discontinuous or overlap; in Chinese, one token can form an expression.}
+\caption{Training examples of (a) \umr sentence graphs, token alignments and document-level relations, and (b) PARSEME verbal multiword expressions, which may be discontinuous or overlap.}
 \label{fig:tasks}
 \end{figure*}
 
 \begin{table*}[t]
-\centering\small
+\centering\tiny
 \setlength{\tabcolsep}{5pt}
 \begin{tabular}{@{}lllp{8.4cm}@{}}
 \toprule
@@ -72,7 +72,7 @@ PARSEME & \skill{candidates} & Rule & Propose token groups from forms, lemmas, p
  & \skill{decide} & Decision & Identify and categorize expressions: return token groups in fragment mode, or answer linguistic tests in closed mode. \\
 \bottomrule
 \end{tabular}
-\caption{Decision skills use instructions and model $M$; rule nodes are implemented in code $C$. Both schemes use code to assemble the final output.}
+\caption{Implementation details of decision and rule nodes.}
 \label{tab:skills}
 \end{table*}
 

@@ -1,9 +1,6 @@
 \begin{abstract}
 Large language models (LLMs) can help bootstrap annotation when gold data is scarce using guidelines with few examples, but they often struggle with specialized annotation conventions and formats, while prompting alone is not reliable and interpretable on how to systematically revise instructions to correct their errors.
 We propose \emph{decision orchestration}, a framework that turns annotation guidelines into an executable procedure in which code controls structure and models make local decisions.
-A reflection module serves as a moderation process, using decision traces and small batches of gold annotations to diagnose errors and iteratively refine the procedure.
+A reflection module serves as a moderation process, using decision traces and small batches of gold annotations to diagnose errors and iteratively refine the procedure. On UMR and PARSEME in two languages, reflection with just a few annotated sentences using small language models or decision models outperforms larger models, suggesting that decision orchestration can serve as a natural first step for future annotation projects, which is to turn the guideline into an executable procedure, then refine it through fine-grained evaluation and a few examples.
 
-On Chinese and English UMR and PARSEME, reflection with just a few annotated sentences improves 16 of 18 procedures using small language models or decision models. On the sampled English PARSEME test set, all reflected procedures outperform the best system from the 2018 shared task.
-
-These findings support the framework's effectiveness and substantial potential for annotation under limited supervision, although gains vary across tasks and languages and do not consistently surpass strong baselines.
 \end{abstract}

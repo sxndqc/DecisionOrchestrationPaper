@@ -8,6 +8,6 @@ Each prediction records its step, candidate options and decision scores, so an e
 \paragraph{Low-cost decision models}
 For 100 Chinese \umr sentences, parsing costs about \$0.1--0.3 with a decision model, \$1.9 with Haiku, and \$7.1 with GPT-6.1-sol using the full guideline. Cheap closed decisions make it practical to scale. The performance is competitive. Jev gives the best Chinese \umr procedure (37.6 \jm{} F1). The coverage limit is visible in PARSEME: a closed decider cannot recover an expression absent from its candidate list, while fragments can. The transfer result in \S\ref{sec:res-calib} indicates that one revised procedure can serve another decision model, which shows great potential for decision models on this task.
 
-\paragraph{Limits of reflection}
+\paragraph{Limitation of reflection}
 \label{sec:disc-rsi}
 All problems coming together during reflection do not guarantee steady improvement. Fragment edits can drift such as Haiku's Chinese PARSEME score peaks at 62.9 at $V_3$ and ends at 53.2. Even measured closed edits are selected on small batches, and recalibrating their thresholds on all 50 training sentences can lower test F1. Reflection revises rules within the existing decomposition determined by codes, and it cannot add candidates that the closed PARSEME enumerator never proposes without a code change, which may cause problems. It also does not close the gap to the one-shot model on English PARSEME, where the task fits the frontier model's prior knowledge.
