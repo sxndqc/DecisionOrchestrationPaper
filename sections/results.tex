@@ -24,7 +24,7 @@ Against shared-task systems, the best reflected procedure on Chinese PARSEME sco
 
 \begin{figure*}[t]
 \centering
-\includegraphics[width=0.9\textwidth]{figures/curves.pdf}
+\includegraphics[width=0.85\textwidth]{figures/curves.pdf}
 \caption{Test F1 of every iteration $V_0,\dots,V_{10}$, and round $r$ means $5r$ gold sentences have been reflected upon. Dotted is baseline: GPT-6.1-sol with the whole guideline. Dashed is SOTA: best shared-task system.}
 \label{fig:curves}
 \end{figure*}
@@ -81,4 +81,4 @@ On PARSEME (Figure~\ref{fig:judge-parseme}), some closed seeds over-accept candi
 \label{tab:calib}
 \end{table}
 
-Table~\ref{tab:calib} compares each closed procedure with its thresholds as written and after calibration on the 50 training sentences. Calibration helps six of eight closed seeds but changes reflected \umr procedures by at most 0.2 points and can hurt PARSEME (Jev Chinese: 63.4 to 61.4). Reflection has already adjusted the decisions, and refitting thresholds on so little data can overfit. The learned procedure also transfers between deciders (last row of Table~\ref{tab:calib}): Jev's $V_{10}$, answered by Microsoft-Decision-1, beats Microsoft's own $V_{10}$ in three of four cases (Chinese PARSEME: 57.1 vs.\ 46.0, or 62.0 after calibration). Cascading uncertain decisions to a small LLM is reported in Appendix~\ref{app:cascade}.
+Table~\ref{tab:calib} compares each closed procedure with its thresholds as written and after calibration on the 50 training sentences. Calibration helps six of eight closed seeds but changes reflected \umr procedures by at most 0.2 points and can hurt PARSEME (Jev Chinese: 63.4 to 61.4). Reflection has already adjusted the decisions, and refitting thresholds on so little data can overfit. The learned procedure also transfers between deciders: Jev's $V_{10}$, answered by Microsoft-Decision-1, beats Microsoft's own $V_{10}$ in three of four cases (Chinese PARSEME: 57.1 vs.\ 46.0, or 62.0 after calibration). Cascading uncertain decisions to a small LLM is reported in Appendix~\ref{app:cascade}.
