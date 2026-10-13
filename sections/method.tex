@@ -2,7 +2,7 @@
 \section{Methodology: Decision Orchestration}
 \label{sec:method}
 
-\paragraph{Workflow and components.}
+\paragraph{Workflow and components}
 A registry runs rule nodes and decision nodes to produce an annotation and an execution trace. On gold data, a judge scores individual annotation units, and a reflector uses the scores and trace to revise the procedure. We represent this system as
 \begin{equation}
 \label{eq:procedure}
@@ -16,7 +16,7 @@ Here, $\mathcal{S}$ contains decision nodes $s_i$, each implemented as a skill w
 
 $R$ executes nodes in ordered groups (\emph{waves}), dispatching a rule node in $C$ or a decision node in $\mathcal{S}$(\emph{emits}), categorizes outputs to worktree $W$ or to next nodes, and assembles the final outputs from the worktree $W$. At $s_i$, $M$ evaluates the input under $d_i$, with supporting information from $T_i$; $C$ validates or converts its answer to an emit conforming to $O_i$, using $\Theta$ for closed decisions, and assembles the annotation. $J$ scores it against gold in fine-grained aspects, along with a \textit{comprehensive score} defined by the annotation benchmark; $\mathcal{F}$ invokes a reflector in $M$ to locate errors, propose edits to the responsible instructions or code, then validates and compresses the revised procedure to avoid skill instructions from becoming too verbose.
 
-\paragraph{Modes of Decision nodes.}
+\paragraph{Modes of Decision nodes}
 \label{sec:modes}
 Decision nodes have two implementations with the same emit.
 In \textbf{fragment mode}, an LLM reads the skill's instructions and input, uses its available tools, and returns a graph fragment in structured outputs.
@@ -30,11 +30,11 @@ For closed decisions with confidence lower than a \textit{cascading threshold}, 
 \label{sec:calibration}
 For the \textit{cascading threshold} above, and to account for different decision models' output probabilities for\textit{decision thresholds}, we fit both in 0.1 increments on a small batch of training annoations for a best comprehensive score.
 
-\paragraph{Fine-grained evaluation.}
+\paragraph{Fine-grained evaluation}
 \label{sec:evaluation}
 The judges in $J$ score individual annotation units against gold; execution traces link predictions to the responsible steps, providing targeted feedback for reflection. Task-specific checks and scoring details are given in the Metrics paragraph of Experiments (\S\ref{sec:metrics}).
 
-\paragraph{Reflection.}
+\paragraph{Reflection}
 \label{sec:reflect}
 Reflection revises the procedure in three steps:
 \textbf{Diagnose ($F_{\mathrm{diag}}$):} use judge feedback and execution traces to locate errors and propose targeted edits.

@@ -2,11 +2,11 @@
 \section{Experiments}
 \label{sec:setup}
 
-\paragraph{Tasks.}
+\paragraph{Tasks}
 We evaluate two structured annotation tasks (Figure~\ref{fig:tasks}). \textbf{\umr} maps sentences to token-aligned graphs of concepts, roles and attributes, and adds document-level temporal, modal and coreference relations \citep{gysel2021design,bonn2025umr2}. \textbf{PARSEME} identifies verbal multiword expressions (VMWEs), including discontinuous expressions, and assigns each a category \citep{ramisch2018parseme,ramisch2020parseme}.
 
-\paragraph{Data.}
-For \umr, we use Chinese and English data from the DMR 2026 shared task, largely based on \umr 2.1 \citep{zeman2026umrst}. Each language has 50 training sentences in ten batches of five; the test sets contain 100 Chinese and 95 English sentences. We parse test chunks of at most five consecutive sentences independently, using shared-task tokenization. For PARSEME, we use Chinese edition 1.2 \citep{ramisch2020parseme} and English edition 1.1 \citep{ramisch2018parseme}. Each language has 50 training sentences in ten batches of five (three with a VMWE and two without per batch) and 100 sampled official test sentences (50 with a VMWE and 50 without).
+\paragraph{Data}
+For \umr, we use Chinese and English data from the DMR 2026 shared task, largely based on \umr 2.1 \citep{zeman2026umrst}. We select 50 training sentences per language in ten batches of five; the test sets contain 100 Chinese and 95 English sentences. We use shared-task tokenization. For PARSEME, we use Chinese edition 1.2 \citep{ramisch2020parseme} and English edition 1.1 \citep{ramisch2018parseme}. Each language has 50 training sentences in ten batches of five (three with a VMWE and two without per batch) and 100 sampled official test sentences (50 with a VMWE and 50 without).
 Table~\ref{tab:skills} lists the decision skills and rule nodes, Figure~\ref{fig:walk} shows a \umr trace, and Appendix~\ref{app:seeds} gives the seed instructions.
 
 \begin{figure*}[t]
@@ -120,14 +120,14 @@ PARSEME & \skill{candidates} & Rule & Propose token groups from forms, lemmas, p
 \label{fig:walk}
 \end{figure*}
 
-\paragraph{Baseline.}
-GPT-6.1-sol generates the annotation in a single call per test chunk, given the full task guideline, the input sentences (including lemma, part-of-speech and dependency columns for PARSEME) and the required output format, with no gold examples.
+\paragraph{Baseline}
+We use GPT-6.1-sol to generate the annotation in a single call per test chunk, given the full guideline, the input sentences (including lemma, part-of-speech and dependency columns for PARSEME) and the required output format. The guideline itself contains examples; we provide no separate gold examples.
 
-\paragraph{Seeding.}
-We write the seed procedures by hand from the published guidelines before reading any training gold; neither mode includes worked examples (Appendix~\ref{app:seeds}). Both modes use the same task decomposition and rule nodes. In fragment mode, decision skills restate the relevant guideline in natural language and return schema-constrained graph fragments or expressions. In closed mode, we encode the guideline's tests as fixed-choice questions, thresholds and deterministic branches; the model supplies choices and code assembles the annotation. The \umr seeds follow the official file format's inventory of relations and attributes.
+\paragraph{Seeding}
+We write the seed procedures solely from the published guidelines before reading any training gold. Neither mode includes worked examples (Appendix~\ref{app:seeds}). In fragment mode, decision skills restate the relevant guideline in natural language and return schema-constrained graph fragments or expressions. In closed mode, we encode possible outputs as fixed-choice questions, with guideline tests, thresholds and deterministic branches; the model supplies choices and code assembles the annotation.
 
-\paragraph{Models and runs.}
-Fragment decisions use GPT-6-luna and Claude Haiku 5.5 (\$0.10 per million input tokens each), with low reasoning effort. Closed decisions use Jev 1.13 \citep{typesafe2026jev}, OpenAI's Decisions API with \texttt{gpt-6-luna-decisions} \citep{openai2026decisions} and Microsoft-Decision-1 \citep{microsoft2026decision}, all through the same interface; the cascade re-asks uncertain Jev questions of Haiku 5.5. Claude Sonnet 5.5 reflects in every run. Each configuration runs ten rounds of reflection from its seed, and every frozen version $V_0,\dots,V_{10}$ is tested. Within our budget and OpenRouter's limit of 20 requests a minute for OpenAI models, this was done for Haiku, Jev and Microsoft on both tasks and for GPT-6-luna on PARSEME; the OpenAI Decisions chains are reported as far as they ran (Limitations). A second, smaller comparison (\S\ref{sec:small}) gives every decider two rounds of reflection, including GPT-6-luna and OpenAI Decisions on \umr and a larger fragment decider, Claude Sonnet 5.5 (on \umr through the Claude subscription, on PARSEME through OpenRouter), and tests \umr on 25 test sentences: five chunks (Chinese 0, 4, 8, 12, 16; English 0, 3, 7, 10, 18, leaving out \texttt{en-0007}, which repeats the text of \texttt{0005}). Every other system is re-scored on the same chunks from its per-chunk counts, and PARSEME uses the full test sets.
+\paragraph{Models and runs}
+Fragment decisions use GPT-6-luna and Claude Haiku 5.5 with low reasoning effort. Closed decisions use Jev 1.13 \citep{typesafe2026jev}, OpenAI's Decisions API with \texttt{gpt-6-luna-decisions} \citep{openai2026decisions} and Microsoft-Decision-1 \citep{microsoft2026decision}, all through the same interface; the cascade re-asks uncertain Jev questions of Haiku 5.5. Claude Sonnet 5.5 reflects in every run. Each configuration runs ten rounds of reflection from its seed, and every frozen version $V_0,\dots,V_{10}$ is tested. Within our budget and OpenRouter's limit of 20 requests a minute for OpenAI models, this was done for Haiku, Jev and Microsoft on both tasks and for GPT-6-luna on PARSEME; the OpenAI Decisions chains are reported as far as they ran (Limitations). A second, smaller comparison (\S\ref{sec:small}) gives every decider two rounds of reflection, including GPT-6-luna and OpenAI Decisions on \umr and a larger fragment decider, Claude Sonnet 5.5 (on \umr through the Claude subscription, on PARSEME through OpenRouter), and tests \umr on 25 test sentences: five chunks (Chinese 0, 4, 8, 12, 16; English 0, 3, 7, 10, 18, leaving out \texttt{en-0007}, which repeats the text of \texttt{0005}). Every other system is re-scored on the same chunks from its per-chunk counts, and PARSEME uses the full test sets.
 
 \paragraph{Reflection protocol.}
 \label{sec:reflection-protocol}
