@@ -40,14 +40,14 @@ On PARSEME (Figure~\ref{fig:judge-parseme}), the closed seeds start low because 
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/judge_umr.pdf}
-\caption{The fine-grained \umr judge: F1 of each check for fragment decisions by Haiku and closed decisions by Jev, from the seed $V_0$ (circle) to $V_{10}$ (arrowhead); shaded: the official \jm{} F1. Selected checks; numbers in Appendix Table~\ref{tab:judge-umr}, all 25 checks in the released results.}
+\caption{The fine-grained \umr judge on the test set: F1 (\%) of each check, before and after reflection. Each row is one check, with one line per decider: orange, Haiku 5.5 making fragment decisions; blue, Jev 1.13 making closed decisions. The open circle is the seed $V_0$, the arrowhead $V_{10}$; an arrow pointing right means reflection raised the score, pointing left that it lowered it, and a lone marker that it barely changed. Panel titles count the rising arrows. Shaded row: the official \jm{} F1. Selected checks; numbers in Appendix Table~\ref{tab:judge-umr}, all 25 checks in the released results.}
 \label{fig:judge-umr}
 \end{figure*}
 
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/judge_parseme.pdf}
-\caption{What each PARSEME procedure does with the test set, seed $V_0$ and $V_{10}$. Right of 0: the gold expressions (59 Chinese, 57 English, so every bar has the same length), coloured by outcome: found with the right category, found with the wrong one, partly found (overlapping tokens), missed because no rule proposed their tokens, or missed because a proposed candidate was rejected. Left of 0: spurious predictions, which overlap no gold expression (count beside the bar). A better procedure has more green on the right and less red on the left. Right column: MWE-based F1 (category-blind, as in the official script), bold for $V_{10}$ and the baseline. Numbers in Appendix Table~\ref{tab:judge-parseme}.}
+\caption{What each PARSEME procedure does with the test set, seed $V_0$ and $V_{10}$. Right of 0: the gold expressions (59 Chinese, 57 English, so every bar has the same length), split by outcome. Green (found, correct): predicted with the same tokens and category. Orange (found, wrong category): same tokens, other category. Light yellow (partly found): the prediction shares some but not all tokens. Dark purple (missed: no candidate proposed): no rule of the procedure proposed the tokens, so no decision was ever asked. Light purple (missed: candidate rejected): a candidate with these tokens was proposed and then rejected by a decision or threshold. Left of 0, red (spurious): predictions that overlap no gold expression, with their count beside the bar. A better procedure has more green on the right and a shorter red bar on the left. Right column: MWE-based F1 (category-blind, as in the official script), bold for $V_{10}$ and the baseline (GPT-6.1-sol with the guideline, one bar). Numbers in Appendix Table~\ref{tab:judge-parseme}.}
 \label{fig:judge-parseme}
 \end{figure*}
 
