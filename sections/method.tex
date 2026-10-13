@@ -29,7 +29,7 @@ To account for differences in decision model's output probabilities, we fit \tex
 
 \paragraph{Fine-grained evaluation.}
 \label{sec:evaluation}
-The judge $J$ compares predicted and gold units and assigns each a verdict. It reports precision, recall and F1 separately for each check (\S\ref{sec:metrics}). Traces identify the skill call behind each predicted unit; missing gold units are flagged. Reflection receives these unit-level records and decisions. Aggregate task F1 is used for reporting and edit acceptance.
+The judges in $J$ score individual annotation units against gold; execution traces link predictions to the responsible steps, providing targeted feedback for reflection. Task-specific checks and scoring details are given in the Metrics paragraph of Experiments (\S\ref{sec:metrics}).
 
 \paragraph{Reflection.}
 \label{sec:reflect}
