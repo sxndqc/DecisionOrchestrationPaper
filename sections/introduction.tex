@@ -33,7 +33,7 @@
   \node[box, fill=blue!3, text width=6.0cm, anchor=north west, font=\footnotesize] (bm) at (5.0,-2.75) {%
     \textbf{Fragment}: an LLM writes the step's small schema-checked emit.\\
     \textbf{Closed}: code lists the options, a decision model returns probabilities, rules read them
-    (thresholds; low confidence $\to$ cascade to a small LLM).};
+    (thresholds).};
   \node[rule, minimum height=3mm, minimum width=4mm] (lr) at ([xshift=0.25cm,yshift=-0.3cm]bm.south west) {};
   \node[font=\scriptsize, anchor=west] at (lr.east) {rule node (code)};
   \node[dec, minimum height=3mm, minimum width=4mm] (ld) at ([xshift=3.0cm,yshift=-0.3cm]bm.south west) {};
