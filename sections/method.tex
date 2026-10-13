@@ -2,8 +2,8 @@
 \section{Methodology: Decision Orchestration}
 \label{sec:method}
 
-\paragraph{Procedure, skills, and registry.}
-We encode the guideline, execution, evaluation and reflection as
+\paragraph{Workflow and components.}
+A registry runs rule nodes and decision nodes to produce an annotation and an execution trace. On gold data, a judge scores individual annotation units, and a reflector uses the scores and trace to revise the procedure. We represent this system as
 \begin{equation}
 \label{eq:procedure}
 \begin{aligned}
@@ -12,7 +12,9 @@ s_i &= (I_i,O_i,d_i,T_i)\in\mathcal{S},\\
 \mathcal{F} &= (F_{\mathrm{diag}},F_{\mathrm{valid}},F_{\mathrm{comp}}).
 \end{aligned}
 \end{equation}
-Each skill $s_i$ specifies input and output schemas $I_i,O_i$, instructions $d_i$ containing the relevant guideline and decision criteria, and available tools $T_i$. Code $C$ executes rule nodes, enumerates options, validates outputs and assembles annotations. The registry $R$ runs groups of nodes (\emph{waves}) in order and dispatches subsequent nodes from typed outputs (\emph{emits}). $M$ specifies the fixed annotation, cascade and reflector models; $\theta$ contains numerical settings such as decision and routing thresholds. $J$ is a fine-grained judge, and $\mathcal{F}$ diagnoses errors, validates edits and compresses the revised procedure.
+Here, $\mathcal{S}$ contains decision nodes $s_i$, each implemented as a skill with input and output schemas $I_i,O_i$, instructions $d_i$, and available tools $T_i$. $R$ is the registry, $C$ the deterministic code, $M$ the fixed annotation and reflection models, and $\theta$ numerical parameters such as thresholds. $J$ is the fine-grained judge; $\mathcal{F}$ comprises diagnosis, edit validation and compression.
+
+$R$ executes nodes in ordered groups (\emph{waves}), dispatching a rule node in $C$ or a decision node in $\mathcal{S}$ from typed outputs (\emph{emits}). At $s_i$, $M$ evaluates the input under $d_i$, with supporting information from $T_i$; $C$ validates or converts its answer to an emit conforming to $O_i$, using $\theta$ for closed decisions, and assembles the annotation. $J$ scores it against gold; $\mathcal{F}$ invokes a reflector in $M$ to locate errors and propose edits to the responsible instructions or code, then validates and compresses the revised procedure.
 
 \paragraph{Decision modes.}
 \label{sec:modes}
