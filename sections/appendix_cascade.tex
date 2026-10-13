@@ -1,0 +1,15 @@
+%=====================================================================
+\section{Cascading uncertain decisions to a small LLM}
+\label{app:cascade}
+
+\paragraph{Method.} Every closed answer carries a confidence $c=\max_o p(o)$. In the cascade, the questions a decision model answers with $c<\tau$ are asked again, with the same state and options, of a small LLM (Claude Haiku 5.5) that must pick one of the options; its pick replaces the decision model's answer, and nothing else changes. $\tau$ is chosen on the 50 training sentences among 0.6, 0.7 and 0.8, and the cascade is used only if some $\tau$ improves the training score. We ran it for Jev only, on its seed $V_0$ and its final $V_{10}$; reflection itself ran without the cascade.
+
+\begin{table}[h]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\resizebox{\columnwidth}{!}{\input{tables/cascade}}
+\caption{The cascade from Jev to Haiku 5.5. Training: Jev's $V_{10}$ on the 50 training sentences without the cascade and at three values of $\tau$. Test: Jev's $V_0$ and $V_{10}$ without and with the cascade, at the selected $\tau$ (\umr: 0.8) or, where no $\tau$ helped on the training sentences (PARSEME), at $\tau=0.7$.}
+\label{tab:cascade}
+\end{table}
+
+\paragraph{Results.} Table~\ref{tab:cascade} gives the results. On PARSEME the cascade hurts. On the training sentences no $\tau$ improved Jev's $V_{10}$ (English 76.7 without the cascade, 64.6--73.5 with it; Chinese 88.2 against 77.3--82.2), and at $\tau=0.7$ the test score falls too (English 53.7 $\to$ 44.1, Chinese 63.4 $\to$ 53.4), while on the seeds it helps a little (37.8 $\to$ 39.8, 22.5 $\to$ 25.8). Once reflection has tuned PARSEME's rules to Jev's answers, replacing the hard ones with another model's breaks that fit. On \umr, whose closed questions are more open (which concept, which role), the training sentences select $\tau=0.8$ in both languages (Chinese 37.5 $\to$ 37.8, English 38.5 $\to$ 38.8), and the cascade adds a little on the test set too: Chinese 37.6 $\to$ 38.1 and English 31.8 $\to$ 32.6, for \$0.18--0.67 per hundred sentences, still a fraction of Haiku's own cost as a fragment decider. On the seeds it adds 1.6 points in both languages (33.9 $\to$ 35.5, 29.8 $\to$ 31.4). The cascade was not tried with the other decision models, with other escalation targets, or during reflection, so these results describe one configuration only.
