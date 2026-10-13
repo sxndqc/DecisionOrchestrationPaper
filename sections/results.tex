@@ -2,6 +2,9 @@
 \section{Results}
 \label{sec:results}
 
+\subsection{Decision Orchestration vs.\ Baseline vs.\ SOTA}
+\label{sec:res-comparison}
+
 \begin{table}[t]
 \centering\small
 \setlength{\tabcolsep}{3.2pt}
@@ -10,6 +13,14 @@
 \label{tab:main}
 \end{table}
 
+Table~\ref{tab:main} compares each procedure with one-shot generation from GPT-6.1-sol given the full guideline. Before seeing gold data, all three closed seeds exceed that baseline by 9--11 F1 points on Chinese \umr (33.2--35.0 vs.\ 23.9), and are within three points on English \umr. The Chinese PARSEME fragment seeds also start higher (59.5--72.1 vs.\ 50.0). English PARSEME is the exception: even after reflection, no procedure reaches the baseline's 75.6.
+
+Against shared-task systems, the best reflected procedure on Chinese PARSEME scores 75.9, below the re-scored 1.2 system's 81.1; on English PARSEME all reflected procedures exceed the re-scored 1.1 system's 40.5. Our best \umr scores, 37.6 Chinese and 32.6 English, exceed the published shared-task scores of 36.5 and 22.2, but those scores cover whole documents whereas ours use five-sentence chunks. The metric also matters: on AnCast++, which matches graph content rather than token alignments, GPT-6.1-sol leads Haiku's $V_{10}$ (44.8 vs.\ 42.2 Chinese; 45.8 vs.\ 37.5 English). The \umr advantage in Table~\ref{tab:main} is therefore specific to the official \jm{} metric and this evaluation unit.
+
+%---------------------------------------------------------------------
+\subsection{Improvement from Reflection}
+\label{sec:res-rsi}
+
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/curves.pdf}
@@ -17,25 +28,24 @@
 \label{fig:curves}
 \end{figure*}
 
-Table~\ref{tab:main} gives the headline numbers, Figure~\ref{fig:curves} every version along the way, and Appendix Table~\ref{tab:all} every number.
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{2.6pt}
+\resizebox{\columnwidth}{!}{\input{tables/rsi}}
+\caption{Ten rounds of reflection: problems the reflector listed, edits tried (with closed-mode retries), edits kept, compressions, and the size of the editable procedure (characters; closed mode includes code).}
+\label{tab:rsi}
+\end{table}
 
-\paragraph{Steps beat the guideline in context.}
-Without any gold, the closed seeds are 9--11 points above GPT-6.1-sol on Chinese \umr (33.2--35.0 against 23.9), and within three points of it on English \umr. On Chinese PARSEME the fragment seeds start well above it (59.5--72.1 against 50.0); on English PARSEME, a scheme close to what frontier models know, every seed stays below it (75.6).
+Figure~\ref{fig:curves} shows every frozen version; Appendix Table~\ref{tab:all} gives the scores. Reflection improves 16 of the 18 ten-round chains. The largest gains are in closed PARSEME: Jev rises from 37.8 to 63.4 in Chinese and 22.5 to 53.7 in English; OpenAI Decisions rises from 35.1 to 54.5 and 42.0 to 56.6. On \umr, Jev reaches the best Chinese score (37.6), while Haiku reaches the best English score on the full test sample (32.6). Sonnet 5.5 reaches 75.9 on Chinese PARSEME after three rounds and the highest English \umr score on its smaller, 25-sentence test.
 
-\paragraph{Fifty gold sentences of reflection.}
-Reflection improves sixteen of the eighteen ten-round chains. The largest gains are on PARSEME with measured closed edits: Jev 37.8 $\to$ 63.4 (Chinese) and 22.5 $\to$ 53.7 (English), OpenAI Decisions 35.1 $\to$ 54.5 and 42.0 $\to$ 56.6. On \umr, Jev reaches 37.6 in Chinese, the best \umr procedure, and Haiku 32.6 in English; Haiku's Chinese seed gains 6.9 points in round 1 alone, by learning that Chinese concepts keep the source word. Unmeasured fragment edits are less stable: Haiku's Chinese PARSEME procedure peaks at 62.9 ($V_3$) and ends at 53.2. A larger fragment decider, Sonnet 5.5, gives the best Chinese PARSEME procedure (75.9 after three rounds) and the best English \umr scores on its 25-sentence test.
+\paragraph{Why a round helps.}
+In the first Chinese \umr batch, Haiku's fragment procedure produced English concept names for Chinese words. Reflection added the convention that Chinese event and entity concepts retain the source word to the concept decisions; across that round, test \jm{} F1 rose from 20.9 to 27.8. By $V_{10}$, its event-concept check rises from 30.0 to 77.3 and its entity-concept check from 36.3 to 73.8 (Figure~\ref{fig:judge-umr}). The PARSEME reflector likewise sharpened the closed light-verb test, including the rule that \zht{有} is not a light verb. Across Jev's ten Chinese rounds, spurious predictions fall from 80 to 9, correctly categorized expressions rise from 7 to 22, and test F1 rises from 37.8 to 63.4 (Figure~\ref{fig:judge-parseme}). These are examples of revised decision criteria; the gains across rounds include other edits.
 
-\paragraph{Against the state of the art.}
-On English PARSEME every reflected procedure is above the best 1.1 system on the same sentences (Milos, 40.5), though not above the frontier model in context. On Chinese PARSEME the 1.2 systems, trained on the full data, stay ahead (81.1 against 75.9). On \umr our best procedures (37.6 Chinese, 32.6 English) score above the best shared-task submission's published results (36.5, 22.2), on smaller evaluation units (five-sentence chunks against whole documents), so the comparison is indicative. The comparison with the frontier model also depends on the metric: AnCast++, which matches nodes by content instead of token alignment, puts GPT-6.1-sol first (44.8 Chinese, 45.8 English, against 42.2 and 37.5 for Haiku's $V_{10}$). Our procedures get their alignments from code, so their advantage on \umr holds on the official metric, not on graph content alone.
+The reflector lists 9--11 problems per \umr batch and 2--4 per PARSEME batch, and proposes about one edit per problem (Table~\ref{tab:rsi}). About half the closed-mode edits survive measurement. Fragment edits are kept when they apply, without a score check: Haiku's Chinese PARSEME peaks at 62.9 in round 3 but ends at 53.2. Retained edits include \texttt{exist-91} for \zh{X中有Y}, the rule that speech content is not discourse, and an inceptive-aspect rule.
 
 %---------------------------------------------------------------------
-\subsection{Where fragment and closed decisions differ}
+\subsection{Fragment vs.\ Closed Decisions}
 \label{sec:case}
-
-
-Because every unit is attributed to the step that made it, reflection's gains and the two modes can be compared check by check (Figure~\ref{fig:judge-umr}). Reflection raises 29 of the 32 Chinese scores and 28 of the 32 English ones, most of all where the seed was weakest (Haiku's Chinese event concepts 30.0 $\to$ 77.3, entity concepts 36.3 $\to$ 73.8, core arguments 22.2 $\to$ 45.6). At $V_{10}$, closed decisions win where code controls the output (node granularity, Chinese 92.9 against 85.8; person and number, 49.0 against 23.2), fragment decisions where judgment is open (event arguments, 45.6 against 35.7; coreference, 16.4 against 12.7). In English, Jev loses on event concepts (55.6 against 72.5), and the trace shows why: 51 of its 212 wrong concepts are inflected forms (\textit{stolen}, \textit{thought}) that the seed's rule-based lemmatizer did not reduce. A decision model can only pick among the options code offers, so the closed mode is as good as its enumerator; such an error is found in one column of the judge and is cheap to fix (an irregular-verb table).
-
-On PARSEME (Figure~\ref{fig:judge-parseme}), the closed seeds start low because they accept far too many candidates (78--123 spurious predictions for 57--59 gold expressions). Reflection teaches them the scheme's sense of ``light'' and ``idiomatic'' (``\zht{有} is not a light verb''), spurious predictions fall in all six closed chains (Jev: 80 $\to$ 9 in Chinese, 112 $\to$ 19 in English; Microsoft, English: 123 $\to$ 11), and correct ones rise in five of the six. What closed procedures cannot recover are expressions no rule proposes (11--16 missed, against 3--7 for fragment procedures).
 
 \begin{figure*}[t]
 \centering
@@ -51,8 +61,12 @@ On PARSEME (Figure~\ref{fig:judge-parseme}), the closed seeds start low because 
 \label{fig:judge-parseme}
 \end{figure*}
 
+The \umr judge (Figure~\ref{fig:judge-umr}) shows gains in 29 of 32 Chinese checks and 28 of 32 English checks. At $V_{10}$, closed decisions do better where code constrains the structure: Chinese node granularity is 92.9 vs.\ 85.8 for fragments, and person and number is 49.0 vs.\ 23.2. Fragments do better on open judgments: event arguments are 45.6 vs.\ 35.7 and coreference 16.4 vs.\ 12.7. The gains are uneven: Haiku's Chinese core arguments rise by 23.4 points while Jev's fall by 2.1; Jev's English event concepts lag Haiku's (55.6 vs.\ 72.5). The trace attributes 51 of Jev's 212 wrong English concepts to inflected forms such as \textit{stolen} and \textit{thought} that its rule-based lemmatizer fails to reduce.
+
+On PARSEME (Figure~\ref{fig:judge-parseme}), some closed seeds over-accept candidates: Jev and Microsoft make 78--123 spurious predictions against 57--59 gold expressions. Reflection reduces spurious predictions in all six closed chains (Jev: 80 to 9 Chinese, 112 to 19 English; Microsoft: 123 to 11 English). It can also reject good candidates: Microsoft's English correct predictions fall from 17 to 10 and missed gold expressions rise from 12 to 32, although its F1 improves from 25.9 to 43.5. Closed procedures additionally miss 8--18 expressions at $V_{10}$ because no rule proposes their tokens, against 3--7 for fragments, which may return expressions outside the candidate list.
+
 %---------------------------------------------------------------------
-\subsection{Calibration and transfer}
+\subsection{Calibration}
 \label{sec:res-calib}
 
 \begin{table*}[t]
@@ -63,18 +77,4 @@ On PARSEME (Figure~\ref{fig:judge-parseme}), the closed seeds start low because 
 \label{tab:calib}
 \end{table*}
 
-Threshold calibration (\S\ref{sec:calibration}) helps six of the eight seeds but leaves the reflected procedures unchanged or worse (Table~\ref{tab:calib}; within $\pm0.2$ on \umr, Jev Chinese PARSEME 63.4 $\to$ 61.4): measured reflection has already tuned the thresholds, and refitting them on 50 sentences overfits. The procedure Jev's chain learned also transfers: answered by Microsoft-Decision-1 it beats Microsoft's own $V_{10}$ in three of four cases (Chinese PARSEME 57.1 against 46.0; 62.0 once calibrated), so what reflection writes is mostly about the scheme, not the model. A third adjustment, cascading uncertain decisions to a small LLM, is in Appendix~\ref{app:cascade}.
-
-%---------------------------------------------------------------------
-\subsection{What reflection does}
-\label{sec:res-rsi}
-
-\begin{table}[t]
-\centering\small
-\setlength{\tabcolsep}{2.6pt}
-\resizebox{\columnwidth}{!}{\input{tables/rsi}}
-\caption{Ten rounds of reflection: problems the reflector listed, edits tried (with closed-mode retries), edits kept, compressions, and the size of the editable procedure (characters; closed mode includes code).}
-\label{tab:rsi}
-\end{table}
-
-The reflector lists 9--11 problems per \umr batch and 2--4 per PARSEME batch and proposes about one edit per problem (Table~\ref{tab:rsi}). Measurement keeps about half of the closed-mode edits; fragment mode keeps every edit that applies, so its procedures grow faster (Chinese \umr 36.8k $\to$ 50.8k characters, against 70.5k $\to$ 73.7k in closed mode). The kept edits read like a manual's errata (``\texttt{exist-91} for \zh{X中有Y}'', ``speech content is not discourse'', ``add inceptive aspect''), each a readable change to a named step that an annotator can check, keep or revert.
+Calibrating thresholds on the 50 training sentences helps six of eight closed seeds but changes reflected \umr procedures by at most 0.2 points and can hurt PARSEME (Jev Chinese: 63.4 to 61.4; Table~\ref{tab:calib}). Reflection has already adjusted the decisions, and refitting thresholds on so little data can overfit. The learned procedure also transfers between deciders: Jev's $V_{10}$, answered by Microsoft-Decision-1, beats Microsoft's own $V_{10}$ in three of four cases (Chinese PARSEME: 57.1 vs.\ 46.0, or 62.0 after calibration). Cascading uncertain decisions to a small LLM is reported in Appendix~\ref{app:cascade}.
