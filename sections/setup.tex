@@ -2,14 +2,138 @@
 \section{Experiments}
 \label{sec:setup}
 
-\paragraph{\umr data.}
-We use the data of the UMR parsing shared task at DMR 2026 \citep{zeman2026umrst}, whose training data is largely based on \umr 2.1 \citep{bonn2025umr2}. For testing we take the shared task's blind test documents for which we have the gold annotation: 13 Chinese documents (\texttt{zh-0021}--\texttt{0024}, \texttt{0027}--\texttt{0035}; 185 sentences) and the four English documents \texttt{en-0005}--\texttt{0008} (95 sentences; \texttt{0005} and \texttt{0007} are two annotations of the same text, kept as in the shared task). Documents are broken up: the Chinese test set is 20 chunks of five consecutive sentences, at least one per document (100 sentences), and the English one all 95 sentences in 20 chunks of at most five. Each chunk is parsed as a document of its own, and its gold keeps the document-level relations between nodes of the chunk. Input is tokenized as in the shared task. For training, reflection reads 10 batches of five consecutive sentences (50 sentences): in Chinese from 10 different training documents (\texttt{0001}--\texttt{0018}), in English from the native-annotation training documents that share no text with the test (the narrative \texttt{0004} and the news documents \texttt{0578}--\texttt{0579}; the training documents \texttt{0001} and \texttt{0003} are excluded, since their text is that of test documents \texttt{0006} and \texttt{0008}).
+\paragraph{Tasks.}
+We evaluate two structured annotation tasks (Figure~\ref{fig:tasks}). \textbf{\umr} maps sentences to token-aligned graphs of concepts, roles and attributes, and adds document-level temporal, modal and coreference relations \citep{gysel2021design,bonn2025umr2}. \textbf{PARSEME} identifies verbal multiword expressions (VMWEs), including discontinuous expressions, and assigns each a category \citep{ramisch2018parseme,ramisch2020parseme}.
 
-\paragraph{PARSEME data.}
-PARSEME 2.0 \citep{savary2026parseme,scholivet2026parseme} has no Chinese data and only a 16-sentence English trial set, so we use the latest editions with these languages: Chinese from edition 1.2 \citep{ramisch2020parseme} and English from 1.1 \citep{ramisch2018parseme}, both verbal MWEs. Training: 10 batches of five training sentences, three with a gold VMWE and two without. Test: 100 official test sentences, 50 with a VMWE and 50 without, sampled with a fixed seed so that 100 sentences contain enough expressions to score (\zh{中文} 59, English 57 VMWEs). We re-score the shared-task systems' released predictions on exactly these sentences; on the full test files our scorer reproduces their published F (e.g., 71.86 for TRAVIS-mono, 33.27 for Milos).
+\paragraph{Data.}
+For \umr, we use Chinese and English data from the DMR 2026 shared task, largely based on \umr 2.1 \citep{zeman2026umrst}. Each language has 50 training sentences in ten batches of five; the test sets contain 100 Chinese and 95 English sentences. We parse test chunks of at most five consecutive sentences independently, using shared-task tokenization. For PARSEME, we use Chinese edition 1.2 \citep{ramisch2020parseme} and English edition 1.1 \citep{ramisch2018parseme}. Each language has 50 training sentences in ten batches of five (three with a VMWE and two without per batch) and 100 sampled official test sentences (50 with a VMWE and 50 without).
+Table~\ref{tab:skills} lists the decision skills and rule nodes, Figure~\ref{fig:walk} shows a \umr trace, and Appendix~\ref{app:seeds} gives the seed instructions.
 
-\paragraph{Systems.}
-\textbf{Baseline}: GPT-6.1-sol, a frontier model, annotates each test chunk directly, given only the full guideline (the \umr guidelines, 366k characters; the PARSEME 1.2 guidelines, 335k characters), the sentences (for PARSEME with the lemma, part-of-speech and dependency columns of the input) and the output format; no gold example. \textbf{Seed procedures} are written from the guidelines only (Appendix~\ref{app:seeds}): the instructions, options and tests restate the guideline, the \umr seeds follow the official file format's inventory of relations and attributes, and there is no example anywhere (every \texttt{example.md} of the fragment skills is empty). The fragment and closed seeds share the decomposition and differ in the decision nodes. \textbf{Fragment mode}: decisions by two small, cheap LLMs, GPT-6-luna and Claude Haiku 5.5 (\$0.10 per million input tokens each), with low reasoning effort. \textbf{Closed mode}: decisions by three decision services, Jev 1.13 \citep{typesafe2026jev}, OpenAI's Decisions API with \texttt{gpt-6-luna-decisions} \citep{openai2026decisions} and Microsoft-Decision-1 \citep{microsoft2026decision}, all through the same interface; and the \textbf{cascade}, Jev with uncertain questions re-asked of Haiku 5.5. The \textbf{reflector} is Claude Sonnet 5.5 for every run. Each configuration runs ten rounds of reflection from its seed, and every frozen version $V_0,\dots,V_{10}$ is tested. Within our budget and OpenRouter's limit of 20 requests a minute for OpenAI models, this was done for Haiku, Jev and Microsoft on both tasks and for GPT-6-luna on PARSEME; the OpenAI Decisions chains are reported as far as they ran (Limitations). A second, smaller comparison (\S\ref{sec:small}) gives every decider two rounds of reflection, including GPT-6-luna and OpenAI Decisions on \umr and a larger fragment decider, Claude Sonnet 5.5 (on \umr through the Claude subscription, on PARSEME through OpenRouter), and tests \umr on 25 test sentences: five chunks (Chinese 0, 4, 8, 12, 16; English 0, 3, 7, 10, 18, leaving out \texttt{en-0007}, which repeats the text of \texttt{0005}). Every other system is re-scored on the same chunks from its per-chunk counts, and PARSEME uses the full test sets.
+\begin{figure*}[t]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[font=\small, every node/.style={inner sep=2pt}]
+  % (a) UMR
+  \node[anchor=north west, align=left, font=\small\bfseries] at (0,0) {(a) \umr: a sentence graph, its alignment, and document-level relations};
+  \node[anchor=north west, align=left, font=\footnotesize] at (0,-0.45) {\emph{And$_1$ you$_2$ watch$_3$ him$_4$ pluck$_5$ a$_6$ few$_7$ pears$_8$ ,$_9$} \quad (sentence 10 of a narrative)};
+  \node[anchor=north west, draw, rounded corners=2pt, fill=gray!6, align=left, font=\scriptsize\ttfamily, text width=6.2cm] (g) at (0,-1.0) {%
+(s10w / watch-01\\
+\ \ :ARG0 (s10p / person\\
+\ \ \ \ \ \ :refer-person 2nd :refer-number singular)\\
+\ \ :ARG1 (s10p2 / pluck-01\\
+\ \ \ \ \ \ :ARG0 (s10p3 / person\\
+\ \ \ \ \ \ \ \ \ \ :refer-person 3rd :refer-number singular)\\
+\ \ \ \ \ \ :ARG1 (s10p4 / pear :quant (s10a / a-few))\\
+\ \ \ \ \ \ :aspect activity)\\
+\ \ :aspect state)};
+  \node[anchor=north west, draw, rounded corners=2pt, fill=gray!6, align=left, font=\scriptsize\ttfamily, text width=5.6cm] (d) at (6.55,-1.0) {%
+alignment: s10w 3-3, s10p 2-2, s10p2 5-5,\\
+\ \ s10p3 4-4, s10p4 8-8, s10a 6-7\\[2pt]
+:temporal ((s8e :after s10w)\\
+\ \ \ \ \ \ \ \ \ \ \ (s10w :overlap s10p2))\\
+:modal ((root :modal author)\\
+\ \ \ \ \ \ \ \ (author :full-affirmative s10w) ...)\\
+:coref ((s8p :same-entity s10p)\\
+\ \ \ \ \ \ \ \ (s9p2 :same-entity s10p4))};
+  % (b) PARSEME
+  \node[anchor=north west, align=left, font=\small\bfseries] at (12.6,0) {(b) PARSEME: verbal multiword expressions};
+  \node[anchor=north west, draw, rounded corners=2pt, fill=gray!6, align=left, font=\scriptsize, text width=6.4cm] at (12.6,-0.6) {%
+\emph{After that, he \underline{made}$_6$ a great \underline{effort}$_9$ to be calm.}\\
+\quad $\{6, 9\}$: \texttt{LVC.full} (light verb + predicative noun, discontinuous)\\[3pt]
+\emph{So Harry had been \underline{brought}$_5$ \underline{up}$_6$ by his dead mother's sister ...}\\
+\quad $\{5, 6\}$: \texttt{VPC.full} (the particle changes the verb's meaning)\\[3pt]
+\zht{我　已經　\underline{作出}$_3$　\underline{決定}$_4$　，　讓　他　發言　。}\\
+\quad $\{3, 4\}$: \texttt{LVC.full}; \quad $\{3\}$: \texttt{VPC.semi} (one token: \zht{作} + complement \zht{出})\\[3pt]
+Categories (EN 1.1): VID, LVC.full, LVC.cause, VPC.full, VPC.semi, IAV;\\
+(ZH 1.2): VID, LVC.full, LVC.cause, VPC.semi, MVC.};
+\end{tikzpicture}}
+\caption{Training examples of (a) \umr sentence graphs, token alignments and document-level relations, and (b) PARSEME verbal multiword expressions, which may be discontinuous or overlap; in Chinese, one token can form an expression.}
+\label{fig:tasks}
+\end{figure*}
+
+\begin{table*}[t]
+\centering\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}lllp{8.4cm}@{}}
+\toprule
+Scheme & Node & Kind & Responsibility \\
+\midrule
+\umr & \skill{sent\_type} & Decision & Classify a span and route it; emit a graph for a leaf. \\
+ & \skill{discourse} & Decision & Split a span into clauses and assign their discourse relation. \\
+ & \skill{predicate} & Decision & Choose the head, sense, aspect, modal strength, polarity and argument roles. \\
+ & \skill{np\_phrase} & Decision & Annotate noun-phrase heads, modifiers, roles, quantity and reference attributes. \\
+ & \skill{special\_entity} & Decision & Annotate names, dates, quantities and ordinals. \\
+ & \skill{document} & Decision & Assign temporal, modal and coreference relations. \\
+ & \skill{coverage} & Rule & Return uncovered content tokens to sentence routing. \\
+ & \skill{antecedent} & Rule & Record participants outside the current span for later merging. \\
+ & \skill{reentrancy} & Rule & Merge nodes with matching types and spans and resolve outside participants. \\
+\midrule
+PARSEME & \skill{candidates} & Rule & Propose token groups from forms, lemmas, parts of speech and dependencies. \\
+ & \skill{decide} & Decision & Identify and categorize expressions: return token groups in fragment mode, or answer linguistic tests in closed mode. \\
+\bottomrule
+\end{tabular}
+\caption{Decision skills use instructions and model $M$; rule nodes are implemented in code $C$. Both schemes use code to assemble the final output.}
+\label{tab:skills}
+\end{table*}
+
+\begin{figure*}[t]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+    font=\scriptsize, >={Stealth[length=1.6mm]},
+    sk/.style={draw, rounded corners=2pt, fill=blue!7, align=left, inner sep=3pt},
+    rl/.style={draw, rounded corners=2pt, fill=gray!12, align=left, inner sep=3pt},
+    bad/.style={text=red!70!black}]
+  \node[sk] (s1) at (0,0) {\textbf{sent\_type} \emph{«And you watch him pluck a few pears,»}\\ predicate .95 \quad discourse .05};
+  \node[sk] (p1) at (0,-1.35) {\textbf{predicate} \emph{«And you watch ...»}\\
+     head: watch .65, pluck .31 \quad sense: watch-01\\
+     aspect: state .66, activity .29\\
+     modal strength: full-affirmative .98 \quad negated: .03\\
+     role(\emph{you}): ARG0 .94 \quad \emph{him pluck a few pears} $\to$ ARG1};
+  \node[sk] (s2) at (-4.3,-3.15) {\textbf{sent\_type} \emph{«you»}: pronoun, a leaf\\ (person :refer-person 2nd :refer-number singular)};
+  \node[sk] (s3) at (2.6,-2.9) {\textbf{sent\_type} \emph{«him pluck a few pears»}: predicate 1.00};
+  \node[sk] (p2) at (2.6,-4.25) {\textbf{predicate} \emph{«him pluck a few pears»}\\
+     head: pluck .98 \quad sense: pluck-01\\
+     \textcolor{red!70!black}{aspect: performance .37, process .35, activity .26}\\
+     role(\emph{him}): ARG0 .99 \quad \emph{few pears} $\to$ ARG1};
+  \node[sk] (n1) at (2.6,-5.9) {\textbf{np\_phrase} \emph{«few pears»}: head pears .98, plural .95\\
+     \textcolor{red!70!black}{mod(\emph{few}): quant 1.00} $\Rightarrow$ (pear :quant (few))};
+  \node[rl] (cov) at (-4.3,-4.6) {\textbf{coverage} (rule): no word left};
+  \node[rl] (re) at (-4.3,-5.55) {\textbf{reentrancy} (rule): no merge};
+  \node[sk] (doc) at (8.6,-1.0) {\textbf{document} (sentences 6--10)\\
+     time(\emph{watch}) vs.\ writing: \textcolor{red!70!black}{before .48}, overlap .48\\
+     time(\emph{pluck}) vs.\ \emph{watch}: contained .77, overlap .22\\
+     conceiver(\emph{pluck}): \emph{you} .95\\
+     coref(\emph{you}): \emph{you} of sentence 8 .98 \\
+     \textcolor{red!70!black}{coref(\emph{watch}): \emph{pluck} of sentence 9 .50}};
+  \draw[->] (s1) -- (p1);
+  \draw[->] (p1) -- node[above, font=\tiny] {ARG0} (s2);
+  \draw[->] (p1) -- node[right, font=\tiny] {ARG1} (s3);
+  \draw[->] (s3) -- (p2);
+  \draw[->] (p2) -- node[right, font=\tiny] {ARG1} (n1);
+  \draw[->] (p1.west) -| (cov.north);
+  \draw[->, dashed] (p1.east) -- node[above, font=\tiny, sloped] {next waves} (doc.west);
+  \node[anchor=north west, align=left, font=\scriptsize, text width=6.4cm] at (5.4,-3.6) {%
+\textbf{Errors} (gold in Figure~\ref{fig:tasks}a): the aspect of \emph{pluck} (gold \texttt{activity}), the quantifier (gold \texttt{a-few}, aligned to \emph{a few}) and the event coreference of \emph{watch}. The trace links each error to its decision, options and probabilities.};
+\end{tikzpicture}}
+\caption{A real trace of the closed-mode \umr seed with Jev. Blue: decision nodes with options and probabilities; grey: rule nodes; red: decisions that differ from gold (Figure~\ref{fig:tasks}a).}
+\label{fig:walk}
+\end{figure*}
+
+\paragraph{Baseline.}
+GPT-6.1-sol generates the annotation in a single call per test chunk, given the full task guideline, the input sentences (including lemma, part-of-speech and dependency columns for PARSEME) and the required output format, with no gold examples.
+
+\paragraph{Seeding.}
+We write the seed procedures by hand from the published guidelines before reading any training gold; neither mode includes worked examples (Appendix~\ref{app:seeds}). Both modes use the same task decomposition and rule nodes. In fragment mode, decision skills restate the relevant guideline in natural language and return schema-constrained graph fragments or expressions. In closed mode, we encode the guideline's tests as fixed-choice questions, thresholds and deterministic branches; the model supplies choices and code assembles the annotation. The \umr seeds follow the official file format's inventory of relations and attributes.
+
+\paragraph{Models and runs.}
+Fragment decisions use GPT-6-luna and Claude Haiku 5.5 (\$0.10 per million input tokens each), with low reasoning effort. Closed decisions use Jev 1.13 \citep{typesafe2026jev}, OpenAI's Decisions API with \texttt{gpt-6-luna-decisions} \citep{openai2026decisions} and Microsoft-Decision-1 \citep{microsoft2026decision}, all through the same interface; the cascade re-asks uncertain Jev questions of Haiku 5.5. Claude Sonnet 5.5 reflects in every run. Each configuration runs ten rounds of reflection from its seed, and every frozen version $V_0,\dots,V_{10}$ is tested. Within our budget and OpenRouter's limit of 20 requests a minute for OpenAI models, this was done for Haiku, Jev and Microsoft on both tasks and for GPT-6-luna on PARSEME; the OpenAI Decisions chains are reported as far as they ran (Limitations). A second, smaller comparison (\S\ref{sec:small}) gives every decider two rounds of reflection, including GPT-6-luna and OpenAI Decisions on \umr and a larger fragment decider, Claude Sonnet 5.5 (on \umr through the Claude subscription, on PARSEME through OpenRouter), and tests \umr on 25 test sentences: five chunks (Chinese 0, 4, 8, 12, 16; English 0, 3, 7, 10, 18, leaving out \texttt{en-0007}, which repeats the text of \texttt{0005}). Every other system is re-scored on the same chunks from its per-chunk counts, and PARSEME uses the full test sets.
+
+\paragraph{Reflection protocol.}
+\label{sec:reflection-protocol}
+Each round parses one batch of five gold sentences. The reflector reads gold and predicted annotations, unit-level scores, attributed errors, decision traces and editable files, then proposes additions, replacements or deletions (Algorithm~\ref{alg:reflect}). In closed mode, each edit is applied to a copy and evaluated on the current and all earlier training batches. It is kept if current-batch F improves and earlier-batch F falls by at most 0.5, or earlier-batch F improves without a current-batch loss. Rejected edits are returned once with their measured effects. In fragment mode, edits are accepted if they apply and leave the procedure loadable, then tested in the next round.
+
+Files exceeding $1.5\times$ their seed length are compressed, merging redundant rules while preserving options, questions and conventions. In closed mode, a compressed version is kept only if neither batch set loses more than 0.5 F. Each round freezes the revised procedure with a reviewable diff. Edits copying six consecutive Chinese characters or four English words from test text are rejected.
 
 \paragraph{Metrics.}
 \label{sec:metrics}

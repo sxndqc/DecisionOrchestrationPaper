@@ -1,119 +1,43 @@
 %=====================================================================
-\section{Decision Orchestration}
+\section{Methodology: Decision Orchestration}
 \label{sec:method}
 
-%---------------------------------------------------------------------
-\begin{figure*}[t]
-\centering
-\resizebox{\textwidth}{!}{%
-\begin{tikzpicture}[font=\small, every node/.style={inner sep=2pt}]
-  % (a) UMR
-  \node[anchor=north west, align=left, font=\small\bfseries] at (0,0) {(a) \umr: a sentence graph, its alignment, and document-level relations};
-  \node[anchor=north west, align=left, font=\footnotesize] at (0,-0.45) {\emph{And$_1$ you$_2$ watch$_3$ him$_4$ pluck$_5$ a$_6$ few$_7$ pears$_8$ ,$_9$} \quad (sentence 10 of a narrative)};
-  \node[anchor=north west, draw, rounded corners=2pt, fill=gray!6, align=left, font=\scriptsize\ttfamily, text width=6.2cm] (g) at (0,-1.0) {%
-(s10w / watch-01\\
-\ \ :ARG0 (s10p / person\\
-\ \ \ \ \ \ :refer-person 2nd :refer-number singular)\\
-\ \ :ARG1 (s10p2 / pluck-01\\
-\ \ \ \ \ \ :ARG0 (s10p3 / person\\
-\ \ \ \ \ \ \ \ \ \ :refer-person 3rd :refer-number singular)\\
-\ \ \ \ \ \ :ARG1 (s10p4 / pear :quant (s10a / a-few))\\
-\ \ \ \ \ \ :aspect activity)\\
-\ \ :aspect state)};
-  \node[anchor=north west, draw, rounded corners=2pt, fill=gray!6, align=left, font=\scriptsize\ttfamily, text width=5.6cm] (d) at (6.55,-1.0) {%
-alignment: s10w 3-3, s10p 2-2, s10p2 5-5,\\
-\ \ s10p3 4-4, s10p4 8-8, s10a 6-7\\[2pt]
-:temporal ((s8e :after s10w)\\
-\ \ \ \ \ \ \ \ \ \ \ (s10w :overlap s10p2))\\
-:modal ((root :modal author)\\
-\ \ \ \ \ \ \ \ (author :full-affirmative s10w) ...)\\
-:coref ((s8p :same-entity s10p)\\
-\ \ \ \ \ \ \ \ (s9p2 :same-entity s10p4))};
-  % (b) PARSEME
-  \node[anchor=north west, align=left, font=\small\bfseries] at (12.6,0) {(b) PARSEME: verbal multiword expressions};
-  \node[anchor=north west, draw, rounded corners=2pt, fill=gray!6, align=left, font=\scriptsize, text width=6.4cm] at (12.6,-0.6) {%
-\emph{After that, he \underline{made}$_6$ a great \underline{effort}$_9$ to be calm.}\\
-\quad $\{6, 9\}$: \texttt{LVC.full} (light verb + predicative noun, discontinuous)\\[3pt]
-\emph{So Harry had been \underline{brought}$_5$ \underline{up}$_6$ by his dead mother's sister ...}\\
-\quad $\{5, 6\}$: \texttt{VPC.full} (the particle changes the verb's meaning)\\[3pt]
-\zht{我　已經　\underline{作出}$_3$　\underline{決定}$_4$　，　讓　他　發言　。}\\
-\quad $\{3, 4\}$: \texttt{LVC.full}; \quad $\{3\}$: \texttt{VPC.semi} (one token: \zht{作} + complement \zht{出})\\[3pt]
-Categories (EN 1.1): VID, LVC.full, LVC.cause, VPC.full, VPC.semi, IAV;\\
-(ZH 1.2): VID, LVC.full, LVC.cause, VPC.semi, MVC.};
-\end{tikzpicture}}
-\caption{The two annotation schemes, on training sentences. (a) \umr \citep{gysel2021design}: a rooted graph of concepts (PropBank senses, abstract concepts, words), roles and attributes per sentence, aligned to tokens, plus document-level temporal, modal and coreference relations that may point into earlier sentences; the guidelines run to over 300 pages. (b) PARSEME \citep{ramisch2018parseme,ramisch2020parseme}: sets of possibly discontinuous, possibly overlapping tokens with a category, decided by the guidelines' decision trees of linguistic tests; in Chinese a single token can be an expression.}
-\label{fig:tasks}
-\end{figure*}
-%---------------------------------------------------------------------
+\paragraph{Workflow and components.}
+A registry runs rule nodes and decision nodes to produce an annotation and an execution trace. On gold data, a judge scores individual annotation units, and a reflector uses the scores and trace to revise the procedure. We represent this system as
+\begin{equation}
+\label{eq:procedure}
+\begin{aligned}
+\Pi &= (\mathcal{S}, R, C, M, W, \Theta, J, \mathcal{F}),\\
+s_i &= (I_i,O_i,d_i,T_i)\in\mathcal{S},\\
+\mathcal{F} &= (F_{\mathrm{diag}},F_{\mathrm{valid}},F_{\mathrm{comp}}).
+\end{aligned}
+\end{equation}
+Here, $\mathcal{S}$ contains decision nodes $s_i$, each implemented as a skill with input and output schemas $I_i,O_i$, instructions $d_i$, and available tools $T_i$. $R$ is the registry, $C$ the deterministic code, $W$ the worktree, $M$ the annotation and reflection models, and $\Theta$ numerical parameters such as thresholds. $J$ is the set of fine-grained judges; $\mathcal{F}$ comprises diagnosis, edit validation and compression.
 
-\paragraph{The tasks.}
-Figure~\ref{fig:tasks} shows what the two schemes ask for. A \umr annotation of a sentence is a graph whose concepts must follow a lexicon (PropBank) and a large inventory of abstract concepts, roles and attributes, aligned to the tokens, and a document-level layer that links each event to a temporal anchor and a conceiver and each mention to its antecedent \citep{gysel2021design,bonn2025umr2}. A PARSEME annotation is a set of token groups, each with a category, decided by tests such as ``can a verbless noun phrase refer to the same event?'' \citep{ramisch2018parseme}. Both schemes are complex in the sense that matters for annotation: the guideline is long, its decisions depend on each other, and a correct annotation needs both general understanding of the sentence and the scheme's conventions.
+$R$ executes nodes in ordered groups (\emph{waves}), dispatching a rule node in $C$ or a decision node in $\mathcal{S}$(\emph{emits}), categorizes outputs to worktree $W$ or to next nodes, and assembles the final outputs from the worktree $W$. At $s_i$, $M$ evaluates the input under $d_i$, with supporting information from $T_i$; $C$ validates or converts its answer to an emit conforming to $O_i$, using $\Theta$ for closed decisions, and assembles the annotation. $J$ scores it against gold in fine-grained aspects, along with a \textit{comprehensive score} defined by the annotation benchmark; $\mathcal{F}$ invokes a reflector in $M$ to locate errors, propose edits to the responsible instructions or code, then validates and compresses the revised procedure to avoid skill instructions from becoming too verbose.
 
-\paragraph{Procedures, skills and the registry.}
-Decision orchestration compiles the guideline into a procedure $\Pi$: a set of \emph{skills}, a \emph{registry} that dispatches them, and numeric parameters $\theta$. A skill has an input, an output schema (its \emph{emit}) and an implementation, either code (a \emph{rule node}) or a model call (a \emph{decision node}). The registry runs \emph{waves} in order; within a wave, a dispatcher maps fields of a skill's emit to the next skills, so control flow is a fixed function of typed decisions and no model can call an undeclared step. Figure~\ref{fig:walk} follows the \umr procedure through the sentence of Figure~\ref{fig:tasks}a. \skill{sent\_type} decides what a piece of the sentence is (several coordinated clauses, one predicate, a noun phrase, a named entity or date, or a leaf); \skill{predicate} chooses a head, its sense among the PropBank rolesets that code looked up, its aspect, modal strength and polarity, and the participant role of each word; every participant becomes a placeholder that goes back to \skill{sent\_type}; the rule node \skill{coverage} sends back words nothing took. A rule wave merges nodes that stand for the same thing, and the \skill{document} wave adds temporal, modal and coreference relations using the five previous sentences. The PARSEME procedure is the smallest instance: a rule node enumerates candidate token groups from the dependency tree of the input, a decision node judges each candidate, and the output is written by code.
-
-%---------------------------------------------------------------------
-\begin{figure*}[t]
-\centering
-\resizebox{\textwidth}{!}{%
-\begin{tikzpicture}[
-    font=\scriptsize, >={Stealth[length=1.6mm]},
-    sk/.style={draw, rounded corners=2pt, fill=blue!7, align=left, inner sep=3pt},
-    rl/.style={draw, rounded corners=2pt, fill=gray!12, align=left, inner sep=3pt},
-    bad/.style={text=red!70!black}]
-  \node[sk] (s1) at (0,0) {\textbf{sent\_type} \emph{«And you watch him pluck a few pears,»}\\ predicate .95 \quad discourse .05};
-  \node[sk] (p1) at (0,-1.35) {\textbf{predicate} \emph{«And you watch ...»}\\
-     head: watch .65, pluck .31 \quad sense: watch-01\\
-     aspect: state .66, activity .29\\
-     modal strength: full-affirmative .98 \quad negated: .03\\
-     role(\emph{you}): ARG0 .94 \quad \emph{him pluck a few pears} $\to$ ARG1};
-  \node[sk] (s2) at (-4.3,-3.15) {\textbf{sent\_type} \emph{«you»}: pronoun, a leaf\\ (person :refer-person 2nd :refer-number singular)};
-  \node[sk] (s3) at (2.6,-2.9) {\textbf{sent\_type} \emph{«him pluck a few pears»}: predicate 1.00};
-  \node[sk] (p2) at (2.6,-4.25) {\textbf{predicate} \emph{«him pluck a few pears»}\\
-     head: pluck .98 \quad sense: pluck-01\\
-     \textcolor{red!70!black}{aspect: performance .37, process .35, activity .26}\\
-     role(\emph{him}): ARG0 .99 \quad \emph{few pears} $\to$ ARG1};
-  \node[sk] (n1) at (2.6,-5.9) {\textbf{np\_phrase} \emph{«few pears»}: head pears .98, plural .95\\
-     \textcolor{red!70!black}{mod(\emph{few}): quant 1.00} $\Rightarrow$ (pear :quant (few))};
-  \node[rl] (cov) at (-4.3,-4.6) {\textbf{coverage} (rule): no word left};
-  \node[rl] (re) at (-4.3,-5.55) {\textbf{reentrancy} (rule): no merge};
-  \node[sk] (doc) at (8.6,-1.0) {\textbf{document} (sentences 6--10)\\
-     time(\emph{watch}) vs.\ writing: \textcolor{red!70!black}{before .48}, overlap .48\\
-     time(\emph{pluck}) vs.\ \emph{watch}: contained .77, overlap .22\\
-     conceiver(\emph{pluck}): \emph{you} .95\\
-     coref(\emph{you}): \emph{you} of sentence 8 .98 \\
-     \textcolor{red!70!black}{coref(\emph{watch}): \emph{pluck} of sentence 9 .50}};
-  \draw[->] (s1) -- (p1);
-  \draw[->] (p1) -- node[above, font=\tiny] {ARG0} (s2);
-  \draw[->] (p1) -- node[right, font=\tiny] {ARG1} (s3);
-  \draw[->] (s3) -- (p2);
-  \draw[->] (p2) -- node[right, font=\tiny] {ARG1} (n1);
-  \draw[->] (p1.west) -| (cov.north);
-  \draw[->, dashed] (p1.east) -- node[above, font=\tiny, sloped] {next waves} (doc.west);
-  \node[anchor=north west, align=left, font=\scriptsize, text width=6.4cm] at (5.4,-3.6) {%
-\textbf{Output} (scored against Figure~\ref{fig:tasks}a): every concept, role and alignment is right; three
-decisions are wrong, and each is visible with its options and probabilities:
-the aspect of \emph{pluck} (gold \texttt{activity}), the quantifier (gold \texttt{a-few} aligned to \emph{a few}) and
-the event coreference of \emph{watch}. Reflection reads exactly these traces.};
-\end{tikzpicture}}
-\caption{The closed-mode seed procedure on the sentence of Figure~\ref{fig:tasks}a (real trace, decisions by Jev). Blue: decision nodes, with the options code enumerated and the probabilities the decision model returned; grey: rule nodes. Red: decisions that differ from the gold.}
-\label{fig:walk}
-\end{figure*}
-%---------------------------------------------------------------------
-
-\paragraph{Two decision modes.}
+\paragraph{Modes of Decision nodes.}
 \label{sec:modes}
-A decision node has two interchangeable implementations with the same emit.
-In a \textbf{fragment decision}, an LLM reads the skill's instructions (the part of the guideline the step needs), the piece and the sentence, may look a lemma up in PropBank, and answers with its emit through a schema: a small graph fragment with placeholders, a list of parts, a relation list. The schema is the format constraint: fields and enumerations are fixed by the registry, spans must lie inside the piece, every variable of an edge must be a node or a placeholder, and an answer that does not validate goes back to the model; no call ever writes a whole graph. In a \textbf{closed decision}, the skill's code enumerates what the answer could be (the words of a piece, the rolesets of a verb, the options of the guideline with a one-line description each) and asks closed questions: a choice among options, yes/no, or a graded score. A \emph{decision model} returns a probability distribution over the options and no text; rules read the distributions against thresholds $\theta$ and build the emit (Figure~\ref{fig:walk}). Closed decisions need no model that can write structured text and come with probabilities, so they can be served by decision services \citep{typesafe2026jev,openai2026decisions,microsoft2026decision}, and every decision is logged with its alternatives.
+Decision nodes have two implementations with the same emit.
+In \textbf{fragment mode}, an LLM reads the skill's instructions and input, uses its available tools, and returns a graph fragment in structured outputs.
+In \textbf{closed mode}, the system uses codes to enumerate options and asks choice, yes/no or graded questions. A decision model returns probabilities over these options, which rules convert into the emit using thresholds in $\Theta$. 
+Both modes log inputs and outputs; closed mode also records options and probabilities.
 
-\paragraph{Threshold calibration.}
+\paragraph{Cascading}
+For closed decisions with confidence lower than a \textit{cascading threshold}, a \textbf{cascading} mechanism routes the input to a stronger model that receives the same inputs and replaces the original answer.
+
+\paragraph{Calibration}
 \label{sec:calibration}
-A rule like ``keep the candidate if $p(\text{yes})\geq 0.5$'' is written for some answerer, and another decision model spreads its probability mass differently. What matters is the decision the rule takes, so we fit $\theta$ to the task metric on the training sentences by coordinate descent: each threshold in turn is swept over $\{0.2, 0.3, \dots, 0.8\}$ with the others fixed, a value is kept when it raises training F by more than 0.1. Only the rules are re-run; cached answers make calibration nearly free.
+For the \textit{cascading threshold} above, and to account for different decision models' output probabilities for\textit{decision thresholds}, we fit both in 0.1 increments on a small batch of training annoations for a best comprehensive score.
 
-\paragraph{Cascade.}
-\label{sec:cascade}
-Every closed answer carries a confidence $c=\max_o p(o)$. In the cascade, questions with $c<\tau$ are asked again, with the same state and options, of a small LLM (Claude Haiku 5.5) that must pick one of the options; its pick replaces the decision model's answer, and nothing else changes. $\tau$ is chosen on the training sentences.
+\paragraph{Fine-grained evaluation.}
+\label{sec:evaluation}
+The judges in $J$ score individual annotation units against gold; execution traces link predictions to the responsible steps, providing targeted feedback for reflection. Task-specific checks and scoring details are given in the Metrics paragraph of Experiments (\S\ref{sec:metrics}).
 
-\paragraph{Evaluation and reflection.}
+\paragraph{Reflection.}
 \label{sec:reflect}
-A parse is scored with the task's official metric and with a fine-grained judge that compares predicted and gold units (nodes, concepts, senses, attributes, arguments, roles, names, reentrancies, temporal, modal and coreference relations; \S\ref{sec:metrics}). Each predicted unit is attributed to the skill call that produced it, through the parse's trace, and each gold unit no call produced is marked as such. Reflection improves the procedure, never a model, one batch of five gold sentences at a time (Algorithm~\ref{alg:reflect}, appendix). For \umr, the five sentences are consecutive sentences of one document, so that coreference and temporal relations within the batch are kept; documents are otherwise broken up. A round has four steps. (1)~The batch is parsed with the current version and judged. (2)~A reflector LLM reads the gold and predicted annotations, the judge's differences with their skills, every decision with its options and probabilities, and the editable files, lists \emph{every} problem it finds (we set no limit) with its cause in the procedure, and proposes edits that modify, add or delete text in one file each. (3)~Acceptance. In closed mode a parse costs seconds, so each edit is measured: it is applied to a copy, the batch and all earlier batches are re-parsed, and it is kept if the batch improves while the earlier batches do not fall by more than 0.5 F, or the earlier batches improve while the batch does not fall; rejected edits go back to the reflector once with their measured effect. In fragment mode a parse costs minutes, so an edit is accepted if it applies and the procedure still loads, and the next round tests it. (4)~Compression: a file that has grown beyond 1.5 times its seed length is rewritten shorter by the reflector, merging rules and dropping redundant ones while keeping every option, question and convention; in closed mode the rewrite is measured like an edit. The result is a new frozen version, and its difference from the last is a readable diff. Edits that copy a stretch of test text (six Chinese characters or four English words) are refused.
+Reflection revises the procedure in three steps:
+\textbf{Diagnose ($F_{\mathrm{diag}}$):} use judge feedback and execution traces to locate errors and propose targeted edits.
+\textbf{Validate ($F_{\mathrm{valid}}$):} check candidate revisions and retain those that satisfy the acceptance criteria.
+\textbf{Compress ($F_{\mathrm{comp}}$):} merge redundant instructions and rules while preserving required options and conventions.
+The experimental protocol is detailed in \S\ref{sec:reflection-protocol} (Reflection protocol).
