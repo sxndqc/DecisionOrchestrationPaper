@@ -32,25 +32,24 @@ On English PARSEME every reflected procedure is above the best 1.1 system on the
 \subsection{Where fragment and closed decisions differ}
 \label{sec:case}
 
-\begin{table}[t]
-\centering\small
-\setlength{\tabcolsep}{2.4pt}
-\resizebox{\columnwidth}{!}{\input{tables/judge_umr}}
-\caption{The fine-grained \umr judge (F1 per check, \%) for fragment decisions by Haiku and closed decisions by Jev, seed and $V_{10}$. Selected checks; all 25 are in the released results.}
-\label{tab:judge-umr}
-\end{table}
 
-\begin{table}[t]
-\centering\small
-\setlength{\tabcolsep}{2.6pt}
-\resizebox{\columnwidth}{!}{\input{tables/judge_parseme}}
-\caption{PARSEME error kinds on the test set (counts of gold or predicted expressions): correct; same tokens with the wrong category; overlapping tokens; gold missed because no rule proposed its tokens, or because a proposed candidate was rejected; spurious predictions. F is MWE-based, category-blind as in the official script.}
-\label{tab:judge-parseme}
-\end{table}
+Because every unit is attributed to the step that made it, reflection's gains and the two modes can be compared check by check (Figure~\ref{fig:judge-umr}). Reflection raises 29 of the 32 Chinese scores and 28 of the 32 English ones, most of all where the seed was weakest (Haiku's Chinese event concepts 30.0 $\to$ 77.3, entity concepts 36.3 $\to$ 73.8, core arguments 22.2 $\to$ 45.6). At $V_{10}$, closed decisions win where code controls the output (node granularity, Chinese 92.9 against 85.8; person and number, 49.0 against 23.2), fragment decisions where judgment is open (event arguments, 45.6 against 35.7; coreference, 16.4 against 12.7). In English, Jev loses on event concepts (55.6 against 72.5), and the trace shows why: 51 of its 212 wrong concepts are inflected forms (\textit{stolen}, \textit{thought}) that the seed's rule-based lemmatizer did not reduce. A decision model can only pick among the options code offers, so the closed mode is as good as its enumerator; such an error is found in one column of the judge and is cheap to fix (an irregular-verb table).
 
-Because every unit is attributed to the step that made it, the two modes can be compared check by check (Table~\ref{tab:judge-umr}). On \umr, closed decisions win where code controls the output (node granularity, Chinese 92.9 against 85.8; person and number, 49.0 against 23.2), fragment decisions where judgment is open (event arguments, 45.6 against 35.7; coreference, 16.4 against 12.7). In English, Jev loses on event concepts (55.6 against 72.5), and the trace shows why: 51 of its 212 wrong concepts are inflected forms (\textit{stolen}, \textit{thought}) that the seed's rule-based lemmatizer did not reduce. A decision model can only pick among the options code offers, so the closed mode is as good as its enumerator; such an error is found in one column of the judge and is cheap to fix (an irregular-verb table).
+On PARSEME (Figure~\ref{fig:judge-parseme}), the closed seeds start low because they accept far too many candidates (78--123 spurious predictions for 57--59 gold expressions). Reflection teaches them the scheme's sense of ``light'' and ``idiomatic'' (``\zht{有} is not a light verb''), spurious predictions fall in all six closed chains (Jev: 80 $\to$ 9 in Chinese, 112 $\to$ 19 in English; Microsoft, English: 123 $\to$ 11), and correct ones rise in five of the six. What closed procedures cannot recover are expressions no rule proposes (11--16 missed, against 3--7 for fragment procedures).
 
-On PARSEME (Table~\ref{tab:judge-parseme}), the closed seeds start low because they accept far too many candidates (78--123 spurious predictions for 57--59 gold expressions). Reflection teaches them the scheme's sense of ``light'' and ``idiomatic'' (``\zht{有} is not a light verb''), and Jev's spurious predictions fall from 80 to 9 (Chinese) and from 112 to 19 (English). What closed procedures cannot recover are expressions no rule proposes (11--16 missed, against 3--7 for fragment procedures).
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/judge_umr.pdf}
+\caption{The fine-grained \umr judge: F1 of each check for fragment decisions by Haiku and closed decisions by Jev, from the seed $V_0$ (circle) to $V_{10}$ (arrowhead); shaded: the official \jm{} F1. Selected checks; numbers in Appendix Table~\ref{tab:judge-umr}, all 25 checks in the released results.}
+\label{fig:judge-umr}
+\end{figure*}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/judge_parseme.pdf}
+\caption{PARSEME error kinds on the test set, seed $V_0$ and $V_{10}$ of each procedure (counts of gold or predicted expressions): correct; same tokens with the wrong category; overlapping tokens; gold missed because no rule proposed its tokens, or because a proposed candidate was rejected; spurious predictions. At the end of each bar: MWE-based F (category-blind, as in the official script), bold for $V_{10}$ and the baseline. Numbers in Appendix Table~\ref{tab:judge-parseme}.}
+\label{fig:judge-parseme}
+\end{figure*}
 
 %---------------------------------------------------------------------
 \subsection{Calibration and transfer}
