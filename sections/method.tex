@@ -36,7 +36,7 @@ The judges in $J$ score individual annotation units against gold; execution trac
 
 \paragraph{Reflection}
 \label{sec:reflect}
-Reflection revises the procedure in three steps:
+A procedure compiled from the guideline alone is incomplete: the guideline cannot cover every case of a language, and gold annotations follow conventions it does not state (e.g., in Chinese \umr gold, concepts keep the source word, \S\ref{sec:res-rsi}). Reflection learns these from a few gold annotations. It revises the procedure in three steps:
 \textbf{Diagnose ($F_{\mathrm{diag}}$):} use judge feedback and execution traces to locate errors and propose targeted edits.
 \textbf{Validate ($F_{\mathrm{valid}}$):} check candidate revisions and retain those that satisfy the acceptance criteria.
 \textbf{Compress ($F_{\mathrm{comp}}$):} merge redundant instructions and rules while preserving required options and conventions.
