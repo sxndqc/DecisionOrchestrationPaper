@@ -5,7 +5,7 @@ Marks in this draft (remove before posting):
 Every other number is measured.
 
 Layout: one response per reviewer. Each point is *the reviewer's concern* → **our answer** → the numbers.
-Four tables are used by more than one reviewer; they are given once, as T1–T4, at the end
+Five tables are used by more than one reviewer; they are given once, as T1–T5, at the end
 ("Tables shared by the responses") and would be pasted into each response that cites them.
 
 ---
@@ -31,39 +31,55 @@ Four tables are used by more than one reviewer; they are given once, as T1–T4,
 
 ### 2. "Test imperfect initial seeds and measure how much performance reflection can recover."
 
-**Answer.** We are running reflection from deliberately damaged seeds (30% and 60% of the instruction files
-emptied; for PARSEME also the candidate rules reduced to the verb alone) and will report V0 and V10 for each.
-[PENDING 5]
+**Answer.** We have this comparison with a naturally imperfect seed. After submission we audited the seeds
+against the guidelines and found real defects (for UMR: a crude English lemmatizer, an option list shorter than
+the guideline's, the temporal parent fixed by a rule instead of decided; for PARSEME: an idiom test that
+accepted almost everything, candidates not marked in the question). We ran reflection from both seeds
+(table T2, UMR on the whole test set, Jev 1.13):
+
+| | seed as submitted | audited seed |
+|---|---|---|
+| Chinese, V0 | 32.7 | 34.5 |
+| Chinese, V10 | 37.0 | 36.6 |
+| English, V0 | 29.6 | 32.6 |
+| English, V10 | 31.5 | 32.8 |
+
+In Chinese, reflection fully recovers what the defective seed loses (both end at about 37). In English it
+recovers two thirds: the remaining gap is the lemmatizer, a defect of rule-node code that ten rounds of
+reflection did not rewrite. We will report this as the limit of what reflection recovers: conventions and
+option texts yes, missing tooling no. For PARSEME see T4 (English: 8.4 → 34.1 from the submitted seed,
+31.2 → 43.3 from the audited one, so there the defects were not fully recovered).
 
 ### 3. "Non-monotonic / model-dependent behavior … does the tuned procedure transfer to a new model or new data?"
 
 **Answer: it transfers to another model and to new data; the unstable runs are all of one kind.**
 
-- *New model.* We had this experiment and cut the row for space; it will be restored. We take the procedure
-  reflected with Jev 1.13 and let Microsoft-Decision-1 answer it, with no further reflection:
-
-  | Microsoft-Decision-1 answering… | UMR zh | UMR en | PARSEME zh | PARSEME en |
-  |---|---|---|---|---|
-  | its own reflected procedure | 35.8 | 31.0 | 46.0 | 43.5 |
-  | the procedure reflected for Jev | 36.6 | 30.4 | 57.1 | 44.2 |
-
-  A procedure tuned with one decider works as well, or better, with another. Only the probability thresholds
-  are model-specific (one number per decision; recalibrating them on the 50 sentences gives 62.0 on PARSEME zh).
-- *New data.* The PARSEME procedures were tested again on the whole official test set, 35–40 times larger than
-  our sample; the gains remain (table T2).
-- *Unstable runs.* All 12 closed-mode runs improve. The runs that do not improve are fragment-mode runs (Haiku on
-  PARSEME, GPT-6-luna on English PARSEME). In fragment mode an edit is accepted without being measured; in
-  closed mode every edit is measured on the training batch before it is kept. We will say this in the results.
+- *New model.* The procedure reflected with Jev 1.13, answered by Microsoft-Decision-1 with no further
+  reflection, on the whole UMR test set: 34.9 (zh) / 32.4 (en), against 35.2 / 32.2 for the procedure reflected
+  with Microsoft-Decision-1 itself. A procedure tuned with one decider works as well with another. (For PARSEME
+  the thresholds must be recalibrated for the new decider; without that, transfer loses 13 F in Chinese.)
+- *New data.* All procedures were tested again on the complete test sets, 2.4 times (UMR zh) and 35–40 times
+  (PARSEME) larger than the samples of the submission; the gains remain (T2, T4).
+- *Unstable runs.* In the submission all 12 closed-mode runs improve; the runs that do not are fragment-mode
+  runs, where an edit is accepted without being measured. We add one honest negative: on the complete English
+  UMR test set the closed procedures' gain from reflection is within run-to-run variation (T2), so for English
+  UMR we claim the level reached, not a gain from reflection.
 
 ### 4. "Domain generality is asserted beyond evidence … fuzzy, highly-recursive annotation."
 
-**Answer.** We agree and will limit the claim to the two tasks studied. As additional evidence we apply the same
-protocol (guideline-only seed, 50 gold units, 10 rounds) to [AUTHOR: chosen task]. [PENDING 6]
+**Answer.** We agree and will limit the claim to the two tasks studied.
+[AUTHOR: decide whether to report the RST experiment. We ran the same protocol on RST parsing of GCDT's five
+test documents (top-down recursive splitting with closed decisions). Result: procedure Full F1 21.3 → 25.8 after
+reflection, against 58.3 for GPT-6.1-sol with the whole guideline in one call per document (second human
+annotator: 56.1). It shows a limit of the method, not its generality. Suggested text if reported: "A first
+experiment on RST parsing shows the limit: there the large model with the whole guideline is at human agreement
+and our procedure is 30 points below it; decisions that need the whole document do not decompose well. We
+report this in Limitations."]
 
 ### 5. "Report UMR with an official/standard scorer alongside juːmæʧ."
 
 **Answer.** juːmæʧ *is* the official scorer of the UMR parsing shared task whose data we use; we will say so at
-first mention. We also add AnCast++:
+first mention. We also add AnCast++ (on the test sample of the submission):
 
 | AnCast (sentence level) | UMR zh, V0 → V10 | UMR en, V0 → V10 |
 |---|---|---|
@@ -78,12 +94,18 @@ AnCast does not.] We will report both scorers and this difference.
 
 ### 6. "Add controlled comparisons against prompt-compilation baselines (e.g. DSPy)."
 
-**Answer.** Two comparisons, on the same tasks and the same 50 gold sentences:
-(a) the large-model baseline with its prompt improved by the same reflector (response to 9J4c, point 1) [PENDING 1];
-(b) DSPy's GEPA optimiser applied to the single-prompt Haiku annotator, starting from the seed texts [PENDING 4].
-GEPA is the closest existing method: it also rewrites prompts from reflection on failures. The difference is that
-it revises one prompt from an end-to-end score, whereas our reflector is told which decision failed and may
-edit the code of rule nodes as well as the text.
+**Answer.** Done, with DSPy's GEPA optimiser, and the result changes what we claim (table T5). The single-call
+annotator (Claude Sonnet 5.5 with the whole guideline, one call per document) had its instruction optimised by
+GEPA on the same 50 gold sentences. On the whole UMR test set it goes from 24.0 to 37.6 in Chinese and from
+31.0 to 39.5 in English. Our best procedures reach 36.6 / 32.8 (Jev alone) and 38.0 / 34.6 (Jev with a cascade to
+GPT-6-luna). So with the same gold, a prompt-optimised large model is level with our procedures in Chinese
+and 5 points above them in English. We will state this plainly and change the claim: the contribution is not
+higher accuracy than an optimised large model, but (i) comparable accuracy in Chinese and above the shared
+task's best system in both languages with decision models that cost one to two orders of magnitude less per
+document ($0.7 against roughly $15–20 at list price for the Chinese test set), (ii) decisions that are logged
+and locally revisable, and (iii) a procedure that transfers between decision models. GEPA's optimised
+instruction also grows to 17–19k characters and quotes training-specific items; on English PARSEME it overfits
+(57.9 → 51.4 on test while 67 → 91 on train).
 
 ---
 
@@ -91,40 +113,45 @@ edit the code of rule nodes as well as the text.
 
 ### W1. "A baseline with the same gold data or prompt optimization would make the comparison more convincing. The UMR SOTA comparison also uses different evaluation settings."
 
-**Answer.** Both are now done like-for-like.
+**Answer.** Both are now done under the same conditions, and we report the outcome whichever way it points.
 
-- *Same gold for the baseline.* GPT-6.1-sol with the whole guideline receives the same 50 gold sentences in two
-  ways: (1) as few-shot examples; (2) through the same reflection loop with the same reflector, which after each
-  training batch rewrites a set of notes appended to the guideline. Test scores: [PENDING 1, 2].
-- *UMR SOTA on identical data.* See table T4: the shared-task systems' released outputs, cut to our test chunks
-  and scored with the same scorer. We are level with the best system in Chinese (37.6 vs 36.9) and above it in
-  English (32.6 vs 27.7).
+- *Prompt optimisation with the same gold* (T5): GEPA on the single-call annotator with the same 50 sentences
+  lifts it to 37.6 (zh) / 39.5 (en) on the whole UMR test set, against 36.6 / 32.8 for our best procedure and
+  38.0 / 34.6 with a cascade. Equal supervision removes the accuracy advantage in Chinese and reverses it in
+  English; see our answer to Reviewer 6SVz, point 6, for how the claim changes.
+- *UMR SOTA on identical data* (T2): every Chinese and English document of the shared task's test set, parsed
+  whole and scored against the released test gold with the official scorer, the participating systems' released
+  outputs scored the same way. Best shared-task system 36.4 (zh) / 27.3 (en); ours 36.6–38.0 / 32.8–34.6.
 
 ### W2. "The test sets are small, with no repeated runs or confidence intervals. Some improvements are only a few F1 points."
 
-**Answer.** We add confidence intervals (table T1) and a test on the whole PARSEME test set (table T2).
+**Answer.** Three additions.
 
-- Of the 16 runs in T1 (4 task–language pairs × 4 models), 12 have a gain whose 95% interval lies entirely above
-  zero, including several of the small ones (e.g. English UMR, Jev: +2.0 [0.6, 3.2]). For the other 4 the
-  interval contains zero, so we cannot claim an improvement, and will not; none is a significant loss.
-- PARSEME intervals are wide because 100 sentences contain only 59 (zh) and 57 (en) expressions. On the whole
-  test set (3,462 / 3,965 sentences) the gains remain large: Jev +28 F in Chinese, +26 F in English.
-- Repeated runs of the test for V0 and V10: [PENDING 3].
+- *Complete test sets* (T2, T4): UMR 236 Chinese and 95 English sentences as whole documents; PARSEME 3,462 and
+  3,965 sentences.
+- *Repeated runs* (T2, T4): every V0 and V10 test of the closed procedures was run three times without the
+  answer cache. Spread: at most 0.2 F in Chinese UMR and 0.7 F in English UMR; at most 0.9 F in PARSEME.
+- *Confidence intervals* on the samples of the submission (T1): of the 16 runs (4 task–language pairs × 4 models),
+  12 have a gain whose 95% interval lies entirely above zero; for the other 4 we claim no improvement.
+
+What this shows: the Chinese UMR gain (+2 to +4) and all PARSEME gains are far outside the run-to-run spread; the
+English UMR gain is not, on the complete test set, and we will say so.
 
 ### W3. "It is difficult to separate the effects of decomposition, reflection, and engineering effort."
 
 **Answer.** Table T3 separates them with one model. For UMR each step adds: condensed instructions instead of the
 whole guideline (zh +2, en +10), running them as a procedure (+10, +3), reflection (+12, +4). For PARSEME in
-fragment mode the pattern does not hold, and we will say so: decomposition helps in Chinese only, and reflection
-does not help Haiku. The PARSEME gains come from the closed-mode procedures (T1).
+fragment mode the pattern does not hold, and we will say so. Engineering effort is isolated by the two seeds in
+our answer to Reviewer 6SVz, point 2: a better-engineered seed starts 2–3 points higher on UMR and ends where
+the first one ends in Chinese.
 
 ### W4. "Reflection uses Claude Sonnet 5.5, and the framework requires task-specific code … development cost is not evaluated."
 
 **Answer.** Each scheme needs a procedure designed from its guideline; that is the intended workflow, and we will
 report its cost.
 
-- Model cost: the reflector for all runs together costs $29 at list price; testing every version of every run
-  cost $37. Annotating 100 sentences costs $4–7 with the baseline and $0.01–0.3 with a decision-model procedure.
+- Model cost: parsing the whole Chinese UMR test set costs $0.7 with Jev 1.13 and $1.7 with the cascade; the
+  reflector for all chains of the submission together costs $29 at list price.
 - Human cost: authoring time as in our answer to Reviewer 6SVz, point 1.
 - Task-specific parts: instruction files, rule nodes, and the list of units the judge compares. Shared between
   UMR and PARSEME: the execution, the trace, and the reflection loop.
@@ -133,7 +160,7 @@ report its cost.
 
 **Answer.** The labels are wrong; thank you. The Sonnet rows are V2 (UMR, on 5 of the 20 chunks) and V3
 (PARSEME); the GPT-6-luna UMR row is V2 on the same 5 chunks. We relabel them, mark the subset, and no longer
-bold the English UMR 42.5, which is on that subset (Haiku V10 on the same chunks: 40.0).
+bold the English UMR 42.5, which is on that subset.
 
 ### C2. "The 'first work' claim … Chun and Xue (2024)."
 
@@ -152,27 +179,31 @@ are the ranges 95–100 and 57–59 sentences; the symbol was lost in typesettin
 
 ### 1. "The abstract claims the framework outperforms larger models … on English PARSEME the baseline scores 75.6 and beats the best reflected procedure at 58.2."
 
-**Answer.** Yes, we will correct it. The abstract will say: reflected procedures beat the larger model on UMR in
-both languages and on Chinese PARSEME; on English PARSEME the larger model with the whole guideline remains
-better (the difference is statistically significant, table T1).
+**Answer.** Yes, we will correct it. The abstract will claim only what T2, T4 and T5 support: on UMR the
+procedures are above the shared task's best system and above the un-tuned large-model baseline; a
+prompt-optimised large model is level (Chinese) or better (English); on English PARSEME the large model
+remains better.
 
 ### 2. "The baseline uses a single zero-shot prompt without tuning. Did you try prompt-tuning or few-shot examples?"
 
-**Answer.** We now do both, with the same 50 gold sentences the procedures use: few-shot examples, and notes
-written by the same reflector over ten rounds. Test scores: [PENDING 1, 2]. If this lifts the baseline above the
-procedures, we will report it and restate the claim as one about cost and inspectability at equal supervision.
+**Answer.** We now did, with DSPy's GEPA and the same 50 gold sentences (T5), and the reviewer's concern is
+confirmed: tuning lifts the single-call annotator from 24.0 to 37.6 (zh) and from 31.0 to 39.5 (en) on the whole
+UMR test set, level with our best procedure in Chinese and above it in English. The claim that structure beats a
+larger model holds only against the un-tuned prompt; we will restate the contribution as cost, inspectability
+and transfer at comparable accuracy (answer to Reviewer 6SVz, point 6).
+[PENDING 1: the same test with GPT-6.1-sol, the paper's baseline model, as the single-call annotator.]
 
 ### 3. "The SOTA comparisons use mismatched data … How does comparing sentence chunks against whole documents affect the UMR SOTA comparison?"
 
-**Answer.** It makes the scores incomparable, so we removed that comparison and replaced it.
+**Answer.** It made the scores incomparable, so we removed that comparison and replaced it.
 
 - *Why incomparable.* A five-sentence chunk loses the document-level relations (coreference, temporal, modal)
-  that cross its boundary, so chunk scores and whole-document scores measure different things.
-- *UMR, now on identical data* (table T4). We cut the shared-task systems' released outputs to our chunks and
-  scored both sides the same way: Chinese 37.6 (ours) vs 36.9; English 32.6 vs 27.7.
-- *PARSEME, now on the full test set* (table T2). Scores are lower than on our sample because the sample has
-  50 sentences with and 50 without an expression, whereas in the full test set only 18% (zh) and 11% (en) of
-  sentences contain one, which gives more room for false positives. The full set becomes the main PARSEME number.
+  that cross its boundary.
+- *UMR, now whole documents on both sides* (T2): 36.6–38.0 (ours) vs 36.4 (best system) in Chinese; 32.8–34.6 vs
+  27.3 in English. On the same documents our own chunk-wise and whole-document scores differ by about one point.
+- *PARSEME, now the full test file* (T4). Scores are lower than on our sample because the sample has 50
+  sentences with and 50 without an expression, whereas in the full file only 18% (zh) and 11% (en) of sentences
+  contain one. The full file becomes the main PARSEME number.
 
 ### 4. "The paper does not quantify the human time and expertise required."
 
@@ -180,9 +211,11 @@ procedures, we will report it and restate the claim as one about cost and inspec
 
 ### 5. "Deterministic rule nodes limit recall … the model cannot recover the missed expression."
 
-**Answer.** True for a fixed procedure, which is why reflection edits code too. "Missed candidate" is a category of
-our error taxonomy, and it triggered 2–6 accepted edits of the candidate rules per PARSEME run. We will show
-candidate recall at V0 and V10 [PENDING 7] and state in the method section that rule nodes are revised as well.
+**Answer.** True, and our added experiments quantify it. Reflection may edit rule-node code, and in the submitted
+PARSEME runs it changed the candidate rules 2–6 times per run. But it does not rebuild a weak rule node: the
+candidate rules of the submitted seed proposed 69% (en) and 74% (zh) of the training file's expressions; a
+rewrite by hand against the guideline raises this to 88% and 82%, and V0 on the full English test set from 8.4
+to 31.2 (T4). We will state candidate recall for every version and name this as the main limit of closed mode.
 
 ### 6. "The authors did not validate the judge's unit-level scores against human judgments."
 
@@ -196,11 +229,10 @@ We will describe the judge as a deterministic comparison so that it is not read 
 
 # Tables shared by the responses
 
-### T1. Does reflection help, and is it more than noise?
+### T1. Samples of the submission: gain of ten rounds with its 95% interval
 
-Each cell: test score after ten rounds minus test score of the seed (V10 − V0), with its 95% confidence
-interval (paired bootstrap over test chunks / sentences, 10,000 resamples). An interval entirely above zero means
-a statistically reliable improvement.
+Each cell: test score after ten rounds minus test score of the seed (V10 − V0) on the submission's test samples,
+with its 95% confidence interval (paired bootstrap over test chunks / sentences, 10,000 resamples).
 
 | | Haiku 5.5 (fragment) | Jev 1.13 | Microsoft-Decision-1 | OpenAI Decisions |
 |---|---|---|---|---|
@@ -209,22 +241,29 @@ a statistically reliable improvement.
 | PARSEME zh | −6.3 [−18.3, 4.7] | +25.6 [13.5, 37.0] | +9.3 [1.2, 17.6] | +19.4 [8.5, 29.9] |
 | PARSEME en | +0.6 [−7.6, 8.4] | +31.2 [20.6, 41.4] | +17.6 [5.8, 29.2] | +14.6 [5.6, 23.8] |
 
-V10 against the GPT-6.1-sol baseline: Chinese UMR, all four procedures better (+9.3 to +13.7, all intervals above
-zero); English UMR, Haiku better (+2.4 [0.4, 4.0]), the three decision models not distinguishable from the
-baseline; English PARSEME, the baseline better than every procedure (−17 to −32).
+### T2. UMR on the complete test set (whole documents, released test gold, official juːmæʧ)
 
-### T2. PARSEME on the whole official test set (MWE-based F; F on unseen expressions in parentheses)
+15 Chinese documents (236 sentences), 4 English documents (95 sentences; the fifth English document, 100
+sentences of another source, is left out). Ranges in parentheses: three runs without the answer cache.
 
-| | sentences | V0 | V10 |
-|---|---|---|---|
-| zh, Jev 1.13 | 3,462 | 21.8 (11.9) | 50.0 (41.2) |
-| zh, Microsoft-Decision-1 | 3,462 | 20.8 (10.7) | 26.7 (14.7) |
-| en, Jev 1.13 | 3,965 | 8.4 (6.2) | 34.1 (26.6) |
-| en, Microsoft-Decision-1 | 3,965 | 8.1 (6.0) | 15.1 (10.9) |
+| system | zh | en |
+|---|---|---|
+| shared task, best system | 36.4 | 27.3 |
+| shared task, second system | 25.8 | 21.4 |
+| GPT-6.1-sol + whole guideline, one call per document | 20.2 [PENDING 1: 14 of 15 documents] | 29.3 |
+| Claude Sonnet 5.5 + whole guideline, one call per document | 24.0 | 31.0 |
+| the same after GEPA on the 50 gold sentences | 37.6 | 39.5 |
+| submitted seed, Jev 1.13: V0 → V10 | 32.7 → 37.0 | 29.6 → 31.5 |
+| submitted seed, Microsoft-Decision-1: V0 → V10 | 32.5 → 33.9 | 28.6 → 30.8 |
+| audited seed, Jev 1.13: V0 → V10 | 34.5 (34.5–34.5) → 36.6 (36.5–36.6) | 32.6 (32.6–33.2) → 32.8 (32.5–33.1) |
+| audited seed, Microsoft-Decision-1: V0 → V10 | 33.9 (33.8–33.9) → 35.2 (35.1–35.4) | 32.1 (31.9–32.3) → 32.2 (32.2–32.5) |
+| audited seed, OpenAI Decisions: V0 → V10 | 34.1 → 35.7 | 29.1 → 28.9 |
+| audited seed, fragment mode, GPT-6-luna: V0 → V5 | 19.9 → 32.0 | 20.0 → 25.8 |
+| audited seed, fragment mode, Haiku 5.5: V0 → V5 | 21.8 → 31.8 | [PENDING] |
+| Jev V10 with a cascade to GPT-6-luna (threshold from training) | 38.0 | 34.6 |
+| Jev's V10 answered by Microsoft-Decision-1 | 34.9 | 32.4 |
 
-Remaining models: [PENDING 3].
-
-### T3. Where the gain comes from (one model throughout: Claude Haiku 5.5)
+### T3. Where the gain comes from (one model throughout: Claude Haiku 5.5; samples of the submission)
 
 | condition | UMR zh | UMR en | PARSEME zh | PARSEME en |
 |---|---|---|---|---|
@@ -237,14 +276,24 @@ Remaining models: [PENDING 3].
 (a)→(b): condensing the guideline. (b)→(c): decomposition and rule nodes. (c)→(d): reflection.
 (d) vs (e): what the reflected instructions lose without the procedure.
 
-### T4. UMR against the shared-task systems on identical data (juːmæʧ, our 20 test chunks)
+### T4. PARSEME on the whole official test file (MWE-based F; 3,462 zh / 3,965 en sentences)
 
-| | zh | en |
+| chain | zh: V0 → V5 → V10 | en: V0 → V5 → V10 |
 |---|---|---|
-| shared task, best system | 36.9 | 27.7 |
-| shared task, second system | 28.2 | 22.0 |
-| GPT-6.1-sol + whole guideline | 23.9 | 30.2 |
-| ours, best V10 | 37.6 (Jev 1.13) | 32.6 (Haiku 5.5) |
+| submitted seed, Jev 1.13 (V0 → V10) | 21.8 → 50.0 | 8.4 → 34.1 |
+| submitted seed, Microsoft-Decision-1 (V0 → V10) | 20.8 → 26.7 | 8.1 → 15.1 |
+| audited seed, Jev 1.13 | 38.1 → 41.7 → 41.8 (41.7–41.8) | 31.2 → 40.7 → 43.3 (43.3–44.1) |
+| audited seed, Microsoft-Decision-1 | 19.8 → 29.7 → 30.5 | 20.6 → 34.8 → 37.1 (37.0–37.5) |
+| audited seed, fragment mode, GPT-6-luna (to V5) | 42.8 → 57.8 | 38.7 → 43.2 |
 
-The systems' outputs are from the UMR 2.2 release, cut to our chunks with the function that cuts the gold.
-Scored against the release's own test gold instead of ours: zh 36.4 vs 36.5, en 32.8 vs 27.9.
+### T5. Prompt optimisation of the single-call annotator with DSPy GEPA (same 50 gold sentences)
+
+Claude Sonnet 5.5 with the whole guideline in one call; GEPA rewrites the instruction (80–90 metric calls;
+the ten training batches are both training and validation set).
+
+| | before | after | our best procedure (Jev V10 / with cascade) |
+|---|---|---|---|
+| UMR zh, complete test set | 24.0 | 37.6 | 36.6 / 38.0 |
+| UMR en, complete test set | 31.0 | 39.5 | 32.8 / 34.6 |
+| PARSEME zh, 100-sentence sample | 19.8 | 60.0 | 46.0 (Jev V10), 75.5 (GPT-6-luna fragment V5) |
+| PARSEME en, 100-sentence sample | 57.9 | 51.4 | 57.1 (Jev V10), 58.1 (GPT-6-luna fragment V5) |
