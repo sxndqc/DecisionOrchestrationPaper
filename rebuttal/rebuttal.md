@@ -259,7 +259,7 @@ sentences of another source, is left out). Ranges in parentheses: three runs wit
 | audited seed, Microsoft-Decision-1: V0 → V10 | 33.9 (33.8–33.9) → 35.2 (35.1–35.4) | 32.1 (31.9–32.3) → 32.2 (32.2–32.5) |
 | audited seed, OpenAI Decisions: V0 → V10 | 34.1 → 35.7 | 29.1 → 28.9 |
 | audited seed, fragment mode, GPT-6-luna: V0 → V5 | 19.9 → 32.0 | 20.0 → 25.8 |
-| audited seed, fragment mode, Haiku 5.5: V0 → V5 | 21.8 → 31.8 | [PENDING] |
+| audited seed, fragment mode, Haiku 5.5: V0 → V5 | 21.8 → 31.8 | 30.3 → 32.8 |
 | Jev V10 with a cascade to GPT-6-luna (threshold from training) | 38.0 | 34.6 |
 | Jev's V10 answered by Microsoft-Decision-1 | 34.9 | 32.4 |
 
